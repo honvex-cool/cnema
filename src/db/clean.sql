@@ -1,0 +1,19 @@
+DROP TABLE genres CASCADE;
+DROP TABLE languages CASCADE;
+DROP TABLE movies CASCADE;
+DROP TABLE people CASCADE;
+DROP TABLE producers CASCADE;
+DROP TABLE regionalizations CASCADE;
+DROP TABLE reservations CASCADE;
+DROP TABLE rooms CASCADE;
+DROP TABLE screenings CASCADE;
+DROP TABLE seats CASCADE;
+DROP TABLE ticket_types CASCADE;
+DROP TABLE tickets CASCADE;
+DROP TABLE movies_genres CASCADE;
+DROP TABLE movies_actors CASCADE;
+DROP TABLE movies_directors CASCADE;
+DROP TABLE movies_producers CASCADE;
+DROP TABLE customers CASCADE;
+
+DROP FUNCTION reservation_value;
