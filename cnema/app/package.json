@@ -1,11 +1,24 @@
 {
-  "name": "cnema",
-  "version": "0.0.1",
-  "description": "A cinema database project (Data Engineering)",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Ultimate Engineering",
-  "license": "MIT"
+    "name": "cnema",
+    "version": "0.0.1",
+    "description": "A cinema database project (Data Engineering)",
+    "main": "index.js",
+    "scripts": {
+        "start": "node dist/index.js",
+        "build": "npx tsc",
+        "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+    },
+    "author": "Ultimate Engineering",
+    "license": "MIT",
+    "dependencies": {
+        "dotenv": "^16.0.1",
+        "express": "^4.18.1"
+    },
+    "devDependencies": {
+        "@types/dotenv": "^8.2.0",
+        "@types/express": "^4.17.13",
+        "concurrently": "^7.2.1",
+        "nodemon": "^2.0.16",
+        "typescript": "^4.7.2"
+    }
 }
