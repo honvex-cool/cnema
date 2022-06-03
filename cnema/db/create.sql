@@ -1,7 +1,7 @@
 -------- MOVIE INFO --------
 ---- Languages ----
 CREATE TABLE languages (
-    language_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    language_id serial NOT NULL,
     language_name character varying(40) NOT NULL,
     CONSTRAINT pk_languages
         PRIMARY KEY(language_id)
@@ -23,7 +23,7 @@ VALUES
 
 ---- Movies ----
 CREATE TABLE movies (
-    movie_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    movie_id serial NOT NULL,
     title character varying(200) NOT NULL,
     duration interval NOT NULL,
     age_rating integer NOT NULL,
@@ -66,7 +66,7 @@ VALUES
 
 ---- Genres ----
 CREATE TABLE genres (
-    genre_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    genre_id serial NOT NULL,
     genre_name character varying(50) NOT NULL,
     short_name character varying(10),
     CONSTRAINT pk_genres
@@ -127,7 +127,7 @@ FROM (VALUES
 
 ---- Producers (companies) ----
 CREATE TABLE producers (
-    producer_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    producer_id serial NOT NULL,
     company_name character varying(100) NOT NULL,
     CONSTRAINT pk_producers
         PRIMARY KEY(producer_id)
@@ -187,7 +187,7 @@ FROM (VALUES
 
 ---- People (actors, directors, etc.) ----
 CREATE TABLE people (
-    person_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    person_id serial NOT NULL,
     first_name character varying(100),
     last_name character varying(100) NOT NULL,
     pseudonym character varying(100),
@@ -287,7 +287,7 @@ FROM (VALUES
 -------- SCREENING INFO --------
 ---- Rooms ----
 CREATE TABLE rooms (
-    room_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    room_id serial NOT NULL,
     room_name character varying(100),
     estimated_cleaning_time INTERVAL,
     CONSTRAINT unq_rooms_room_id
@@ -309,7 +309,7 @@ VALUES
 
 ---- Seats ----
 CREATE TABLE seats (
-    seat_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    seat_id serial NOT NULL,
     room integer NOT NULL,
     row_no integer NOT NULL,
     seat_no integer NOT NULL,
@@ -357,7 +357,7 @@ VALUES
 
 ---- Regionalizations ----
 CREATE TABLE regionalizations (
-    regionalization_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    regionalization_id serial NOT NULL,
     audio integer,
     lector boolean,
     subtitles integer,
@@ -393,7 +393,7 @@ VALUES
 
 ---- Screenings ----
 CREATE TABLE screenings (
-    screening_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    screening_id serial NOT NULL,
     movie integer NOT NULL,
     room integer NOT NULL,
     screening_date timestamp NOT NULL,
@@ -442,7 +442,7 @@ VALUES
 -------- RESERVATION INFO --------
 ---- Customers ----
 CREATE TABLE customers (
-    customer_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    customer_id serial NOT NULL,
     username character varying(30) NOT NULL,
     email character varying(100) NOT NULL,
     CONSTRAINT pk_users
@@ -467,7 +467,7 @@ VALUES
 
 ---- Ticket types ----
 CREATE TABLE ticket_types (
-    ticket_type_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    ticket_type_id serial NOT NULL,
     type_name character varying(40),
     discount numeric,
     CONSTRAINT pk_ticket_types
@@ -492,7 +492,7 @@ VALUES
 
 ---- Reservations ----
 CREATE TABLE reservations (
-    reservation_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    reservation_id serial NOT NULL,
     customer integer NOT NULL,
     reservation_date timestamp DEFAULT now() NOT NULL,
     CONSTRAINT pk_reservations
@@ -519,7 +519,7 @@ VALUES
 
 ---- Tickets ----
 CREATE TABLE tickets (
-    ticket_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    ticket_id serial NOT NULL,
     screening integer NOT NULL,
     seat integer NOT NULL,
     ticket_type integer NOT NULL,
