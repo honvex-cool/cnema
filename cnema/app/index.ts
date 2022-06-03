@@ -15,7 +15,7 @@ app.get(
     '/',
     async (_req: Request, res: Response) => {
         let result = await db.manyOrNone('select * from people;').then(
-            data => data.map((row, index, _data) => String(index + 1) + ". " + row.first_name + ' ' + row.last_name).join('<br/>')
+            data => data.map((row, index, _data) => String(index + 1) + ") " + row.first_name + ' ' + row.last_name).join('<br/>')
         );
         return res.send(`People present in database:<br/>${result}`);
     }
