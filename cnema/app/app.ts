@@ -11,6 +11,8 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT;
 
+app.set('view engine', 'ejs');
+
 app.get(
     '/',
     async (_req: Request, res: Response) => {
@@ -26,4 +28,4 @@ app.listen(
     () => {
         console.log(`[server] Server is running at port ${port}!`);
     }
-)
+);
