@@ -188,9 +188,9 @@ FROM (VALUES
 ---- People (actors, directors, etc.) ----
 CREATE TABLE people (
     person_id serial NOT NULL,
-    first_name character varying(100),
+    first_name character varying(50),
     last_name character varying(100) NOT NULL,
-    pseudonym character varying(100),
+    pseudonym character varying(50),
     CONSTRAINT pk_directors
         PRIMARY KEY(person_id),
     CONSTRAINT unq_people
@@ -230,8 +230,9 @@ VALUES
 CREATE TABLE movies_actors (
     movie_id integer NOT NULL,
     actor_id integer NOT NULL,
-    CONSTRAINT pk_movies_actors
-        UNIQUE(movie_id, actor_id)
+    portraying character varying(80) NOT NULL,
+    CONSTRAINT unq_movies_actors
+        UNIQUE(movie_id, actor_id, portraying)
 );
 
 ALTER TABLE movies_actors
@@ -247,11 +248,12 @@ ALTER TABLE movies_actors
 INSERT INTO movies_actors
 SELECT
     (SELECT movie_id FROM movies WHERE title = movie),
-    (SELECT person_id FROM people WHERE first_name || ' ' || last_name = actor)
+    (SELECT person_id FROM people WHERE first_name || ' ' || last_name = actor),
+    portraying
 FROM (VALUES
-    ('Blade Runner', 'Harrison Ford'),
-    ('Bogowie', 'Tomasz Kot')
-) AS connection(movie, actor);
+    ('Blade Runner', 'Harrison Ford', 'Rick Deckard'),
+    ('Bogowie', 'Tomasz Kot', 'Zbigniew Religa')
+) AS connection(movie, actor, portraying);
 ------
 
 -- connect movies and directors --
@@ -288,7 +290,7 @@ FROM (VALUES
 ---- Rooms ----
 CREATE TABLE rooms (
     room_id serial NOT NULL,
-    room_name character varying(100),
+    room_name character varying(50),
     estimated_cleaning_time INTERVAL,
     CONSTRAINT unq_rooms_room_id
         UNIQUE(room_id),
