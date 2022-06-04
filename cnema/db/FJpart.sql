@@ -50,7 +50,7 @@ BEGIN
 				s.screening_date::timestamp + a_s.screening_hour::interval + interval '15 minutes' + (SELECT abstract_screening_length(a_s.abstract_screening_id))
 			FROM
 				screenings s JOIN abstract_screenings a_s ON s.abstract_screening = a_s.abstract_screening_id
-			WHERE s.screening_date >= TODAY() AND a_s.room = (SELECT room FROM abstract_screenings WHERE abstract_screening_id=NEW.abstract_screening)
+			WHERE s.screening_date >= NOW() :: date AND a_s.room = (SELECT room FROM abstract_screenings WHERE abstract_screening_id=NEW.abstract_screening)
 		LOOP
 			IF (new_begin_time,new_end_time) OVERLAPS (temp."begin_time",temp."end_time") THEN
 				RETURN NULL;
@@ -175,6 +175,7 @@ FROM
 	LEFT OUTER JOIN languages al ON rg.audio = al.language_id
 	LEFT OUTER JOIN languages ll ON rg.lector = ll.language_id
 	LEFT OUTER JOIN languages sl ON rg.subtitles = sl.language_id
+WHERE s.screening_date >= NOW() :: date
 ORDER BY s.screening_date,a_s.screening_hour,m.title;
 
 

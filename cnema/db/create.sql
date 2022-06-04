@@ -289,7 +289,6 @@ FROM (VALUES
 CREATE TABLE rooms (
     room_id serial NOT NULL,
     room_name character varying(100),
-    estimated_cleaning_time INTERVAL,
     CONSTRAINT unq_rooms_room_id
         UNIQUE(room_id),
     CONSTRAINT pk_rooms
@@ -301,8 +300,7 @@ INSERT INTO ROOMS
 VALUES
 (
     DEFAULT,
-    'Tiny Room',
-    '5 minutes'
+    'Tiny Room'
 );
 ------
 ------------
@@ -317,8 +315,10 @@ CREATE TABLE seats (
         PRIMARY KEY(seat_id)
 );
 
-CREATE UNIQUE INDEX unq_seats
-    ON seats(room, row_no, seat_no);
+-- ensure unique seat --
+ALTER TABLE seats
+    ADD CONSTRAINT unq_seats
+        UNIQUE(room, row_no, seat_no);
 
 -- connect seats and rooms --
 ALTER TABLE seats
@@ -359,7 +359,7 @@ VALUES
 CREATE TABLE regionalizations (
     regionalization_id serial NOT NULL,
     audio integer,
-    lector boolean,
+    lector integer,
     subtitles integer,
     CONSTRAINT unq_regionalizations_regionalization_id
         UNIQUE(regionalization_id),
@@ -371,6 +371,11 @@ CREATE TABLE regionalizations (
 ALTER TABLE regionalizations
     ADD CONSTRAINT fk_regionalizations_languages_audio
         FOREIGN KEY(audio)
+            REFERENCES languages(language_id);
+
+ALTER TABLE regionalizations
+    ADD CONSTRAINT fk_regionalizations_languages_lector
+        FOREIGN KEY(lector)
             REFERENCES languages(language_id);
 
 ALTER TABLE regionalizations
@@ -391,53 +396,121 @@ VALUES
 ------
 ------------
 
----- Screenings ----
-CREATE TABLE screenings (
-    screening_id serial NOT NULL,
-    movie integer NOT NULL,
+---- Abstract_screenings ----
+CREATE TABLE abstract_screenings(
+    abstract_screening_id serial NOT NULL,
+    screening_hour time NOT NULL,
     room integer NOT NULL,
-    screening_date timestamp NOT NULL,
-    regionalization integer,
     base_ticket_price numeric NOT NULL,
-    CONSTRAINT pk_screenings
-        PRIMARY KEY(screening_id)
+    CONSTRAINT pk_abstract_screenings
+        PRIMARY KEY(abstract_screening_id)
 );
 
--- connect screeenings and movies --
-ALTER TABLE screenings
-    ADD CONSTRAINT fk_screenings_movies
-        FOREIGN KEY(movie)
-            REFERENCES movies(movie_id);
-------
-
--- connnect screenings and regionalizations --
-ALTER TABLE screenings
-    ADD CONSTRAINT fk_screenings_regionalizations
-        FOREIGN KEY(regionalization)
-            REFERENCES regionalizations(regionalization_id);
-------
-
--- connect screenings and rooms --
-ALTER TABLE screenings
-    ADD CONSTRAINT fk_screenings_rooms
+-- connect abstract_screenings and rooms --
+ALTER TABLE abstract_screenings
+    ADD CONSTRAINT fk_abstract_screenings_rooms
         FOREIGN KEY(room)
             REFERENCES rooms(room_id);
 ------
 
--- insert example screening --
-INSERT INTO screenings
-VALUES
-(
+-- insert example abstract_screening --
+INSERT INTO abstract_screenings
+VALUES(
     DEFAULT,
-    (SELECT movie_id FROM movies WHERE title = 'Bogowie'),
-    (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
-    '2022-05-15 18:00:00',
-    NULL,
-    35
+    '18:00',
+    1,
+    18
 );
 ------
 ------------
-------------------------
+
+---- Screenings ----
+CREATE TABLE screenings (
+    screening_id serial NOT NULL,
+    screening_date date NOT NULL,
+    abstract_screening integer NOT NULL,
+    CONSTRAINT pk_screenings
+        PRIMARY KEY(screening_id)
+);
+
+-- connect screenings and abstract_screenings --
+ALTER TABLE screenings
+    ADD CONSTRAINT fk_screenings_abstract_screenings
+        FOREIGN KEY(abstract_screening)
+            REFERENCES abstract_screenings(abstract_screening_id);
+------
+
+-- insert example screening --
+INSERT INTO screenings
+VALUES(
+    DEFAULT,
+    '2022-06-13',
+    1
+);
+------
+------------
+
+---- Movie_realizations ----
+CREATE TABLE movie_realizations(
+    movie_realization_id serial NOT NULL,
+    movie integer NOT NULL,
+    regionalization integer NOT NULL,
+    CONSTRAINT pk_movie_realization_id
+        PRIMARY KEY(movie_realization_id)
+);
+
+-- connect movie_realizations and movies --
+ALTER TABLE movie_realizations
+    ADD CONSTRAINT fk_movie_realizations_movies
+        FOREIGN KEY(movie)
+            REFERENCES movies(movie_id);
+------
+
+-- connnect movie_realizations and regionalizations --
+ALTER TABLE movie_realizations
+    ADD CONSTRAINT fk_movie_realizations_regionalizations
+        FOREIGN KEY(regionalization)
+            REFERENCES regionalizations(regionalization_id);
+------
+
+-- insert example movie_realization --
+INSERT INTO movie_realizations
+VALUES(
+    DEFAULT,
+    1,
+    1
+);
+------
+------------
+
+---- Movies_screenings ----
+CREATE TABLE movies_screenings(
+    abstract_screening integer NOT NULL,
+    movie_realization integer NOT NULL
+);
+
+-- connect movies_screenings and movie_realizations --
+ALTER TABLE movies_screenings
+    ADD CONSTRAINT fk_movies_screenings_movie_realizations
+        FOREIGN KEY(movie_realization)
+            REFERENCES movie_realizations(movie_realization_id);
+------
+
+-- connect movies_screenings and abstract_screenings --
+ALTER TABLE movies_screenings
+    ADD CONSTRAINT fk_movies_screenings_abstract_screenings
+        FOREIGN KEY(abstract_screening)
+            REFERENCES abstract_screenings(abstract_screening_id);
+------
+
+-- insert example movie_screening --
+INSERT INTO movies_screenings
+VALUES(
+    1,
+    1
+);
+------
+------------
 
 -------- RESERVATION INFO --------
 ---- Customers ----
@@ -569,27 +642,5 @@ VALUES
     NULL
 );
 ------
-------------
-
----- Basic functionality ----
-CREATE OR REPLACE FUNCTION RESERVATION_VALUE(reservation_id integer)
-RETURNS numeric
-AS
-$$
-BEGIN
-    RETURN
-        COALESCE(
-            (
-                SELECT SUM(base_ticket_price)
-                FROM
-                    tickets
-                        JOIN screenings ON screening = screening_id
-                WHERE reservation = reservation_id
-            ),
-            0
-        );
-END;
-$$
-LANGUAGE plpgsql;
 ------------
 ------------------------
