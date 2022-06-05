@@ -189,6 +189,10 @@ CREATE TABLE regionalizations (
         PRIMARY KEY(regionalization_id)
 );
 
+ALTER TABLE regionalizations
+    ADD CONSTRAINT unq_regionalizations
+        UNIQUE(audio, lector, subtitles);
+
 -- connect regionalizations and languages --
 ALTER TABLE regionalizations
     ADD CONSTRAINT fk_regionalizations_languages_audio
@@ -250,6 +254,10 @@ CREATE TABLE movie_realizations(
     CONSTRAINT pk_movie_realization_id
         PRIMARY KEY(movie_realization_id)
 );
+
+ALTER TABLE movie_realizations
+    ADD CONSTRAINT unq_movie_realizations
+        UNIQUE(movie, regionalization);
 
 -- connect movie_realizations and movies --
 ALTER TABLE movie_realizations
@@ -966,8 +974,42 @@ FROM
 	LEFT OUTER JOIN languages ll ON rg.lector = ll.language_id
 	LEFT OUTER JOIN languages sl ON rg.subtitles = sl.language_id;
 
+
+
+CREATE OR REPLACE FUNCTION regionalizations_langague_names_insert() 
+RETURNS TRIGGER AS $regionalizations_langague_names_insert$
+DECLARE
+audio_id integer := NULL;
+lector_id integer := NULL;
+subtitles_id integer := NULL;
+BEGIN
+    IF NEW."audio" IS NOT NULL THEN
+        SELECT language_id INTO audio_id FROM languages WHERE language_name=NEW."audio";
+        IF audio_id IS NULL THEN
+            RAISE EXCEPTION 'Incorrect audio language';
+        END IF;
+    END IF;
+    IF NEW."lector" IS NOT NULL THEN
+        SELECT language_id INTO lector_id FROM languages WHERE language_name=NEW."lector";
+        IF lector_id IS NULL THEN
+            RAISE EXCEPTION 'Incorrect lector language';
+        END IF;
+    END IF;
+    IF NEW."subtitles" IS NOT NULL THEN
+        SELECT language_id INTO subtitles_id FROM languages WHERE language_name=NEW."subtitles";
+        IF subtitles_id IS NULL THEN
+            RAISE EXCEPTION 'Incorrect subtitles language';
+        END IF;
+    END IF;
+	INSERT INTO regionalizations VALUES(DEFAULT,audio_id,lector_id,subtitles_id) RETURNING regionalization_id INTO NEW.regionalization_id;
+    RETURN NEW;
+END;
+$regionalizations_langague_names_insert$
+LANGUAGE plpgsql;
+CREATE TRIGGER regionalizations_langague_names_insert INSTEAD OF INSERT ON regionalizations_langague_names
+FOR EACH ROW EXECUTE PROCEDURE regionalizations_langague_names_insert();
+
 CREATE OR REPLACE RULE regionalizations_langague_names_no_delete AS ON DELETE TO regionalizations_langague_names DO INSTEAD NOTHING;
-CREATE OR REPLACE RULE regionalizations_langague_names_no_insert AS ON INSERT TO regionalizations_langague_names DO INSTEAD NOTHING;
 CREATE OR REPLACE RULE regionalizations_langague_names_no_update AS ON UPDATE TO regionalizations_langague_names DO INSTEAD NOTHING;
 ------
 
@@ -1018,16 +1060,22 @@ CREATE OR REPLACE FUNCTION schedule_insert()
 RETURNS TRIGGER AS $schedule_insert$
 DECLARE
 mv_id integer := (SELECT movie_id FROM movies WHERE title=NEW.title);
-rg_id integer := (SELECT regionalization_id 
-					FROM regionalizations_langague_names 
-					WHERE COALESCE(audio,'##')=COALESCE(NEW.audio,'##') AND COALESCE(lector,'##')=COALESCE(NEW.lector,'##') AND COALESCE(subtitles,'##')=COALESCE(NEW.subtitles,'##'));
 rm_id integer := (SELECT room_id FROM rooms WHERE room_name = NEW.room_name);
+rg_id integer;
 mr_id integer;
 as_id integer;
 BEGIN
-	IF mv_id IS NULL OR rg_id IS NULL OR rm_id IS NULL THEN 
-		RETURN NULL;
+	IF mv_id IS NULL OR rm_id IS NULL THEN 
+		RAISE EXCEPTION 'No room or movie found';
 	END IF;
+
+    SELECT regionalization_id INTO rg_id
+					FROM regionalizations_langague_names 
+					WHERE COALESCE(audio,'##')=COALESCE(NEW.audio,'##') AND COALESCE(lector,'##')=COALESCE(NEW.lector,'##') AND COALESCE(subtitles,'##')=COALESCE(NEW.subtitles,'##');
+    IF rg_id IS NULL THEN
+        INSERT INTO regionalizations_langague_names
+            VALUES(DEFAULT,NEW.audio,NEW.lector,NEW.subtitles) RETURNING regionalization_id INTO rg_id;
+    END IF;
 
 	SELECT movie_realization_id INTO mr_id
 				FROM movie_realizations 
