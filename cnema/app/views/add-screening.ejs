@@ -1,0 +1,59 @@
+<h2>This is a page where you can add a screening!</h2>
+<form name="screening" action="/add-screening-result" method="post">
+    <label for="screening_movie">Which movie? </label>
+    <select name="screening_movie" required>
+        <% for(let movie of movies) { %>
+            <option value="'<%= movie.title %>'">
+                <%= movie.title %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="screening_date screening_time">When? </label>
+    <input name="screening_date" type="date" required/>
+    <input name="screening_time" type="time" required/>
+    <br/>
+    <label for="screening_audio">Audio: </label>
+    <select name="screening_audio">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="'<%= language.language_name %>'">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="screening_lector">Lector: </label>
+    <select name="screening_lector">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="'<%= language.language_name %>'">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="screening_subtitles">Subtitles: </label>
+    <select name="screening_subtitles">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="'<%= language.language_name %>'">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="screening_room">Screening room: </label>
+    <select name="screening_room">
+        <% for(let room of rooms) { %>
+            <option value="'<%= room.room_name %>'">
+                <%= room.room_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="screening_ticket_price">Base ticket price: </label>
+    <input name="screening_ticket_price" type="number" min="0" required/>
+    <br/>
+    <input type="submit" value="Add to schedule"/>
+</form>

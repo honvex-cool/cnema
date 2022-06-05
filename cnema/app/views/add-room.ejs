@@ -1,0 +1,12 @@
+<h2>Add room</h2>
+<h3>Rooms currently present:</h3>
+<ul>
+<% for(let room of rooms) { %>
+    <li><%= room.room_name %></li>
+<% } %>
+</ul>
+<form name="room_addition" action="/add-room-result" method="post">
+    <label for="room_name">New room name: </label>
+    <input name="room_name" type="text" required/>
+    <input name="submit_room" type="submit" value="Add"/>
+</form>
