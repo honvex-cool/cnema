@@ -292,8 +292,8 @@ ALTER TABLE movies_screenings
 CREATE TABLE customers (
     customer_id serial NOT NULL,
     username character varying(30) NOT NULL,
-    email character varying(100) NOT NULL CHECK(email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'),
-    CONSTRAINT pk_users
+    email character varying(100) UNIQUE NOT NULL CHECK(email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'),
+    CONSTRAINT pk_users 
         PRIMARY KEY(customer_id)
 );
 ------------
