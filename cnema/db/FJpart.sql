@@ -1,4 +1,3 @@
----- TRIGGERS ----
 -- Screenings delete check --
 CREATE OR REPLACE FUNCTION abstract_screening_length(a_s_id integer) RETURNS time AS
 $$
@@ -65,9 +64,6 @@ FOR EACH ROW EXECUTE PROCEDURE screenings_insert_check();
 ------
 ------------
 
-
----- FUNCTIONS ----
-
 -- Reservation value --
 CREATE OR REPLACE FUNCTION reservation_value(reservation_id integer)
 RETURNS numeric
@@ -108,9 +104,6 @@ END;
 $$
 LANGUAGE plpgsql;
 ------
-------------
-
----- VIEWS ----
 
 -- Regular customers --
 CREATE OR REPLACE VIEW regular_customers AS
@@ -173,41 +166,6 @@ CREATE OR REPLACE RULE regionalizations_langague_names_no_insert AS ON INSERT TO
 CREATE OR REPLACE RULE regionalizations_langague_names_no_update AS ON UPDATE TO regionalizations_langague_names DO INSTEAD NOTHING;
 ------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- Schedule --
 CREATE OR REPLACE VIEW schedule AS
 SELECT
@@ -227,7 +185,8 @@ FROM
 WHERE fs.screening_date >= NOW()::date
 ORDER BY fs.screening_date,fs.screening_hour,fs.screening_id;
 
-
+CREATE OR REPLACE RULE schedule_no_delete AS ON DELETE TO schedule DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE schedule_no_update AS ON UPDATE TO schedule DO INSTEAD NOTHING;
 
 CREATE OR REPLACE FUNCTION schedule_insert() 
 RETURNS TRIGGER AS $schedule_insert$
@@ -280,36 +239,11 @@ $schedule_insert$
 LANGUAGE plpgsql;
 CREATE TRIGGER schedule_insert INSTEAD OF INSERT ON schedule
 FOR EACH ROW EXECUTE PROCEDURE schedule_insert();
+------
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Full screenings --
 CREATE OR REPLACE VIEW full_screenings AS
 SELECT 
     s.screening_id,
