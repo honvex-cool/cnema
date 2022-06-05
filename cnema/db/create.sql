@@ -6,19 +6,6 @@ CREATE TABLE languages (
     CONSTRAINT pk_languages
         PRIMARY KEY(language_id)
 );
-
--- insert example languages --
-INSERT INTO languages
-VALUES
-(
-    DEFAULT,
-    'English'
-),
-(
-    DEFAULT,
-    'Polski'
-);
-------
 ------------
 
 ---- Movies ----
@@ -41,27 +28,6 @@ ALTER TABLE movies
         FOREIGN KEY(original_language)
             REFERENCES languages(language_id);
 ------
-
--- insert example movies --
-INSERT INTO movies
-VALUES
-(
-    DEFAULT,
-    'Blade Runner',
-    '117 minutes',
-    13,
-    '1982-06-25',
-    (SELECT language_id FROM languages WHERE language_name = 'English')
-),
-(
-    DEFAULT,
-    'Bogowie',
-    '112 minutes',
-    16,
-    '2014-10-10',
-    (SELECT language_id FROM languages WHERE language_name = 'Polski')
-);
-------
 ------------
 
 ---- Genres ----
@@ -74,26 +40,6 @@ CREATE TABLE genres (
     CONSTRAINT unq_genres
         UNIQUE(genre_name)
 );
-
--- insert example genres --
-INSERT INTO genres
-VALUES
-(
-    DEFAULT,
-    'drama',
-    NULL
-),
-(
-    DEFAULT,
-    'biographical',
-    'biography'
-),
-(
-    DEFAULT,
-    'science-fiction',
-    'sci-fi'
-);
-------
 
 -- connect movies and genres --
 CREATE TABLE movies_genres (
@@ -112,16 +58,6 @@ ALTER TABLE movies_genres
     ADD CONSTRAINT fk_movies_genres_movies
         FOREIGN KEY(movie_id)
             REFERENCES movies(movie_id);
-
-INSERT INTO movies_genres
-SELECT
-    (SELECT movie_id FROM movies WHERE title = movie),
-    (SELECT genre_id FROM genres WHERE genre_name = genre)
-FROM (VALUES
-    ('Blade Runner', 'science-fiction'),
-    ('Bogowie', 'drama'),
-    ('Bogowie', 'biographical')
-) AS connection(movie, genre);
 ------
 ------------
 
@@ -132,27 +68,6 @@ CREATE TABLE producers (
     CONSTRAINT pk_producers
         PRIMARY KEY(producer_id)
 );
-
--- insert example producers --
-INSERT INTO producers
-VALUES
-(
-    DEFAULT,
-    'The Ladd Company'
-),
-(
-    DEFAULT,
-    'Shaw Brothers'
-),
-(
-    DEFAULT,
-    'Blade Runner Partnership'
-),
-(
-    DEFAULT,
-    'Piotr Łukasz Woźniak Starak'
-);
-------
 
 -- connect movies and producers --
 CREATE TABLE movies_producers (
@@ -171,17 +86,6 @@ ALTER TABLE movies_producers
     ADD CONSTRAINT fk_movies_producers_producers
         FOREIGN KEY(producer_id)
             REFERENCES producers(producer_id);
-
-INSERT INTO movies_producers
-SELECT
-    (SELECT movie_id FROM movies WHERE title = movie),
-    (SELECT producer_id FROM producers WHERE company_name = producer)
-FROM (VALUES
-    ('Blade Runner', 'The Ladd Company'),
-    ('Blade Runner', 'Shaw Brothers'),
-    ('Blade Runner', 'Blade Runner Partnership'),
-    ('Bogowie', 'Piotr Łukasz Woźniak Starak')
-) AS connection(movie, producer);
 ------
 ------------
 
@@ -196,35 +100,6 @@ CREATE TABLE people (
     CONSTRAINT unq_people
         UNIQUE(first_name, last_name, pseudonym)
 );
-
--- insert example people
-INSERT INTO people
-VALUES
-(
-    DEFAULT,
-    'Ridley',
-    'Scott',
-    NULL
-),
-(
-    DEFAULT,
-    'Harrison',
-    'Ford',
-    NULL
-),
-(
-    DEFAULT,
-    'Łukasz',
-    'Palkowski',
-    NULL
-),
-(
-    DEFAULT,
-    'Tomasz',
-    'Kot',
-    NULL
-);
-------
 
 -- connect movies and actors --
 CREATE TABLE movies_actors (
@@ -244,16 +119,6 @@ ALTER TABLE movies_actors
     ADD CONSTRAINT fk_movies_actors_people
         FOREIGN KEY(actor_id)
             REFERENCES people(person_id);
-
-INSERT INTO movies_actors
-SELECT
-    (SELECT movie_id FROM movies WHERE title = movie),
-    (SELECT person_id FROM people WHERE first_name || ' ' || last_name = actor),
-    portraying
-FROM (VALUES
-    ('Blade Runner', 'Harrison Ford', 'Rick Deckard'),
-    ('Bogowie', 'Tomasz Kot', 'Zbigniew Religa')
-) AS connection(movie, actor, portraying);
 ------
 
 -- connect movies and directors --
@@ -273,15 +138,6 @@ ALTER TABLE movies_directors
     ADD CONSTRAINT fk_movies_directors_directors
         FOREIGN KEY(director_id)
             REFERENCES people(person_id);
-
-INSERT INTO movies_directors
-SELECT
-    (SELECT movie_id FROM movies WHERE title = movie),
-    (SELECT person_id FROM people WHERE first_name || ' ' || last_name = director)
-FROM (VALUES
-    ('Blade Runner', 'Ridley Scott'),
-    ('Bogowie', 'Łukasz Palkowski')
-) AS connection(movie, director);
 ------
 ------------
 ------------------------
@@ -296,15 +152,6 @@ CREATE TABLE rooms (
     CONSTRAINT pk_rooms
         PRIMARY KEY(room_id)
 );
-
--- insert example room
-INSERT INTO ROOMS
-VALUES
-(
-    DEFAULT,
-    'Tiny Room'
-);
-------
 ------------
 
 ---- Seats ----
@@ -327,33 +174,6 @@ ALTER TABLE seats
     ADD CONSTRAINT fk_seats_rooms
         FOREIGN KEY(room)
             REFERENCES rooms(room_id);
-
-INSERT INTO seats
-VALUES
-(
-    DEFAULT,
-    (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
-    1,
-    1
-),
-(
-    DEFAULT,
-    (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
-    1,
-    2
-),
-(
-    DEFAULT,
-    (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
-    2,
-    1
-),
-(
-    DEFAULT,
-    (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
-    2,
-    2
-);
 ------
 ------------
 
@@ -385,17 +205,6 @@ ALTER TABLE regionalizations
         FOREIGN KEY(subtitles)
             REFERENCES languages(language_id);
 ------
-
--- insert example regionalization --
-INSERT INTO regionalizations
-VALUES
-(
-    DEFAULT,
-    NULL,
-    NULL,
-    (SELECT language_id FROM languages WHERE language_name = 'Polski')
-);
-------
 ------------
 
 ---- Abstract_screenings ----
@@ -414,16 +223,6 @@ ALTER TABLE abstract_screenings
         FOREIGN KEY(room)
             REFERENCES rooms(room_id);
 ------
-
--- insert example abstract_screening --
-INSERT INTO abstract_screenings
-VALUES(
-    DEFAULT,
-    '18:00',
-    1,
-    18
-);
-------
 ------------
 
 ---- Screenings ----
@@ -440,15 +239,6 @@ ALTER TABLE screenings
     ADD CONSTRAINT fk_screenings_abstract_screenings
         FOREIGN KEY(abstract_screening)
             REFERENCES abstract_screenings(abstract_screening_id);
-------
-
--- insert example screening --
-INSERT INTO screenings
-VALUES(
-    DEFAULT,
-    '2022-06-13',
-    1
-);
 ------
 ------------
 
@@ -474,15 +264,6 @@ ALTER TABLE movie_realizations
         FOREIGN KEY(regionalization)
             REFERENCES regionalizations(regionalization_id);
 ------
-
--- insert example movie_realization --
-INSERT INTO movie_realizations
-VALUES(
-    DEFAULT,
-    1,
-    1
-);
-------
 ------------
 
 ---- Movies_screenings ----
@@ -504,14 +285,6 @@ ALTER TABLE movies_screenings
         FOREIGN KEY(abstract_screening)
             REFERENCES abstract_screenings(abstract_screening_id);
 ------
-
--- insert example movie_screening --
-INSERT INTO movies_screenings
-VALUES(
-    1,
-    1
-);
-------
 ------------
 
 -------- RESERVATION INFO --------
@@ -523,21 +296,6 @@ CREATE TABLE customers (
     CONSTRAINT pk_users
         PRIMARY KEY(customer_id)
 );
-
--- insert example customers --
-INSERT INTO customers
-VALUES
-(
-    DEFAULT,
-    'john-doe',
-    'john.doe@gmail.com'
-),
-(
-    DEFAULT,
-    'MarySue',
-    'mary.sue@yahoo.com'
-);
-------
 ------------
 
 ---- Ticket types ----
@@ -548,21 +306,6 @@ CREATE TABLE ticket_types (
     CONSTRAINT pk_ticket_types
         PRIMARY KEY(ticket_type_id)
 );
-
--- insert example ticket types --
-INSERT INTO ticket_types
-VALUES
-(
-    DEFAULT,
-    'normal',
-    NULL
-),
-(
-    DEFAULT,
-    'for students',
-    0.4
-);
---
 ------------
 
 ---- Reservations ----
@@ -579,16 +322,6 @@ ALTER TABLE reservations
     ADD CONSTRAINT fk_reservations_customers
         FOREIGN KEY(customer)
             REFERENCES customers(customer_id);
-------
-
--- insert example reservation --
-INSERT INTO reservations
-VALUES
-(
-    DEFAULT,
-    (SELECT customer_id FROM customers LIMIT 1),
-    DEFAULT
-);
 ------
 ------------
 
@@ -630,19 +363,6 @@ ALTER TABLE tickets
     ADD CONSTRAINT fk_tickets_reservations
         FOREIGN KEY(reservation)
             REFERENCES reservations(reservation_id);
-------
-
--- insert example ticket --
-INSERT INTO tickets
-VALUES
-(
-    DEFAULT,
-    (SELECT screening_id FROM screenings LIMIT 1),
-    (SELECT seat_id FROM seats LIMIT 1),
-    (SELECT ticket_type_id FROM ticket_types LIMIT 1),
-    (SELECT reservation_id FROM reservations LIMIT 1),
-    NULL
-);
 ------
 ------------
 ------------------------
