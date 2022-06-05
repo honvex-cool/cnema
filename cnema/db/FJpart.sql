@@ -166,6 +166,27 @@ CREATE OR REPLACE RULE regionalizations_langague_names_no_insert AS ON INSERT TO
 CREATE OR REPLACE RULE regionalizations_langague_names_no_update AS ON UPDATE TO regionalizations_langague_names DO INSTEAD NOTHING;
 ------
 
+-- Full screenings --
+CREATE OR REPLACE VIEW full_screenings AS
+SELECT 
+    s.screening_id,
+    s.screening_date,
+    a_s.screening_hour,
+    a_s.room,
+    a_s.base_ticket_price,
+    mr.movie,
+    mr.regionalization,
+    a_s.abstract_screening_id,
+    mr.movie_realization_id
+ 
+FROM
+	screenings s 
+	JOIN abstract_screenings a_s ON s.abstract_screening = a_s.abstract_screening_id
+	JOIN movies_screenings ms ON a_s.abstract_screening_id = ms.abstract_screening
+	JOIN movie_realizations mr ON ms.movie_realization = mr.movie_realization_id
+WHERE s.screening_date >= NOW()::date
+ORDER BY s.screening_date,a_s.screening_hour,s.screening_id;
+
 -- Schedule --
 CREATE OR REPLACE VIEW schedule AS
 SELECT
@@ -241,34 +262,10 @@ CREATE TRIGGER schedule_insert INSTEAD OF INSERT ON schedule
 FOR EACH ROW EXECUTE PROCEDURE schedule_insert();
 ------
 
-
-
--- Full screenings --
-CREATE OR REPLACE VIEW full_screenings AS
-SELECT 
-    s.screening_id,
-    s.screening_date,
-    a_s.screening_hour,
-    a_s.room,
-    a_s.base_ticket_price,
-    mr.movie,
-    mr.regionalization,
-    a_s.abstract_screening_id,
-    mr.movie_realization_id
- 
-FROM
-	screenings s 
-	JOIN abstract_screenings a_s ON s.abstract_screening = a_s.abstract_screening_id
-	JOIN movies_screenings ms ON a_s.abstract_screening_id = ms.abstract_screening
-	JOIN movie_realizations mr ON ms.movie_realization = mr.movie_realization_id
-WHERE s.screening_date >= NOW()::date
-ORDER BY s.screening_date,a_s.screening_hour,s.screening_id;
-
-
-
 -- Full schedule --
 CREATE OR REPLACE VIEW full_schedule AS
 SELECT
+	s.screening_id,
 	a_s.screening_hour,
 	s.screening_date,
 	m.title,

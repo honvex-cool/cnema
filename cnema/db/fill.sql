@@ -253,6 +253,7 @@ VALUES
 (DEFAULT, 'No Brave Plane', '60 minutes', 12, '1968-11-07', 5),
 (DEFAULT, 'The Blue Traveller', '167 minutes', 2, '1979-08-02', 6),
 (DEFAULT, 'The Tiny Plane', '85 minutes', 14, '1962-04-05', 9),
+(DEFAULT, 'The Entire Bad Trip To Vipers Nest','105 minutes',18,'2022-03-01',2),
 (DEFAULT, 'The Entire Yellow Ship', '71 minutes', 6, '1972-08-26', 5),
 (DEFAULT, 'The Entire Blue Snake', '21 minutes', 5, '1968-11-24', 7),
 (DEFAULT, 'No Great Dog', '103 minutes', 1, '1973-09-04', 8),
@@ -1503,3 +1504,15 @@ VALUES
 (97, 54, 'Juan Ahmed'),
 (69, 47, 'Jose Luo');
 
+-- Rooms
+INSERT INTO rooms VALUES(DEFAULT,'Sala Tomka');
+INSERT INTO rooms VALUES(DEFAULT,'Sala Zosi');
+INSERT INTO rooms VALUES(DEFAULT,'Sala Basi');
+INSERT INTO rooms VALUES(DEFAULT,'Sala Kasi');
+INSERT INTO rooms VALUES(DEFAULT,'Sala Asi');
+INSERT INTO rooms VALUES(DEFAULT,'Sala Czesi');
+
+INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,NULL);
+INSERT INTO regionalizations VALUES(DEFAULT,2,NULL,NULL);
+INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,1);
+INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,2);
