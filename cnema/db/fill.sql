@@ -1624,5 +1624,9 @@ VALUES
   ('mauris.eu@aol.org','eget,');
 
 
+INSERT INTO ticket_types VALUES
+  (DEFAULT,'Normalny',0),
+  (DEFAULT,'Ulgowy',0.4),
+  (DEFAULT,'Kombatancki',0.99);
 
 
