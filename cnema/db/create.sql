@@ -292,7 +292,7 @@ ALTER TABLE movies_screenings
 CREATE TABLE customers (
     customer_id serial NOT NULL,
     username character varying(30) NOT NULL,
-    email character varying(100) NOT NULL,
+    email character varying(100) NOT NULL CHECK(email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'),
     CONSTRAINT pk_users
         PRIMARY KEY(customer_id)
 );
@@ -1188,6 +1188,19 @@ CREATE OR REPLACE RULE full_schedule_no_update AS ON UPDATE TO full_schedule DO 
 
 
 --Przemo
+--get_id
+CREATE OR REPLACE FUNCTION get_roomid(s_id int) RETURNS int AS $$
+BEGIN
+	RETURN (SELECT room FROM full_screenings WHERE s_id=screening_id);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION last_res_id(c_id int) RETURNS int AS $$
+BEGIN
+	RETURN (SELECT reservation_id FROM reservations WHERE customer=c_id ORDER BY reservation_date DESC LIMIT 1);
+END;
+$$ LANGUAGE plpgsql;
+
 -------------
 --INSERT TICKET WHEN SCREENING ALREADY STARTED/ENDED
 CREATE OR REPLACE FUNCTION cant_buy_ticket() RETURNS TRIGGER AS $$
@@ -1196,10 +1209,11 @@ BEGIN
                 OR (NEW.reservation IS NOT NULL AND NEW.reservation NOT IN (SELECT reservation_id FROM reservations))
                 OR (NEW.reservation IS NULL)
                 OR get_start(NEW.screening)<=NOW()
-                OR NEW.seat IN ( SELECT s.seat_id FROM occupied_seats(NEW.seat) s )
+		OR get_roomid(NEW.screening)=(SELECT room FROM seats s WHERE NEW.seat_id=s.seat_id)
+                OR NEW.seat IN ( SELECT os.seat_id FROM occupied_seats(NEW.seat) os )
                 OR NEW.ticket_type NOT IN (SELECT ticket_type_id FROM ticket_types)
 	THEN
-		RETURN NULL;
+		RAISE EXCEPTION 'cant insert ticket';
 	END IF;
 	RETURN NEW;
 END;
@@ -1209,6 +1223,20 @@ CREATE TRIGGER cant_buy_ticket BEFORE INSERT ON tickets
 FOR EACH ROW EXECUTE PROCEDURE cant_buy_ticket();
 
 -------------
+--DELETE TRIGGER
+CREATE FUNCTION delete_reservation_if_empty() RETURNS TRIGGER AS $$
+BEGIN
+	IF (SELECT COALESCE(count(*), 0) FROM reservations WHERE OLD.reservation=reservation_id)=0
+	THEN
+		DELETE FROM reservations WHERE reservation_id=OLD.reservation;
+	END IF;
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER delete_reservation_if_empty AFTER DELETE ON tickets
+FOR EACH ROW EXECUTE PROCEDURE delete_reservation_if_empty();
+-------------
 --BUY TICKET FUNCTION
 CREATE OR REPLACE FUNCTION buy_ticket(scr_id int, seat_id int, type int, res_id int, c_id int) RETURNS boolean AS $$
 BEGIN
@@ -1216,10 +1244,11 @@ BEGIN
 		OR (res_id IS NOT NULL AND res_id NOT IN (SELECT reservation_id FROM reservations))
 		OR (res_id IS NULL AND (c_id IS NULL OR c_id NOT IN (SELECT customer_id FROM customers)))
 		OR get_start(scr_id)<=NOW()
-		OR seat_id IN ( SELECT s.seat_id FROM occupied_seats(scr_id) s )
+		OR get_roomid(scr_id)=(SELECT room FROM seats s WHERE seat_id=s.seat_id)
+		OR seat_id IN ( SELECT os.seat_id FROM occupied_seats(scr_id) os )
 		OR type NOT IN (SELECT ticket_type_id FROM ticket_types)
 	THEN
-		RETURN false;
+		RAISE EXCEPTION 'cant buy this ticket';
 	END IF;
 	IF	res_id IS NULL
 	THEN
@@ -1229,9 +1258,6 @@ BEGIN
 	RETURN true;
 END;
 $$ LANGUAGE plpgsql;
-
-
-
 ---------------------
 --ALL BOUGHT TICKETS FROM USER
 CREATE OR REPLACE FUNCTION user_history(id INTEGER) RETURNS TABLE(
@@ -1266,8 +1292,7 @@ BEGIN
 	THEN
 		RETURN NEW;
 	END IF;
-	NEW.cancellation_date=OLD.cancellation_date;
-	RETURN NEW;
+	RAISE EXCEPTION 'It is to late to cancel the ticket';
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER cant_cancel_hour_before BEFORE UPDATE ON tickets
