@@ -341,7 +341,7 @@ VALUES
     (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
     1,
     2
-),
+),full_schedule
 (
     DEFAULT,
     (SELECT room_id FROM rooms WHERE room_name = 'Tiny Room'),
