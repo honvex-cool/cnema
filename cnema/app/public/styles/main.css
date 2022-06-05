@@ -1,0 +1,25 @@
+body {
+    background-color: #323232;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+}
+
+.container {
+    margin: 0 auto;
+    width: 80%;
+    text-align: justify;
+}
+
+header {
+    text-align: center;
+    font-size: 15pt;
+}
+
+footer {
+    text-align: center;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
