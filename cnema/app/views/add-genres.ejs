@@ -1,0 +1,16 @@
+<h1>Add genres</h1>
+<h2>Currently known genres:</h2>
+<ul>
+    <% for(let genre of genres) { %>
+        <li><%= genre.genre_name %></li>
+    <% } %>
+</ul>
+<form action="/add-genre-action" method="post">
+    <label for="genre_name">New genre name:</label>
+    <input name="genre_name" type="text" required/>
+    <br/>
+    <label for="short_name">Short name (optional):</label>
+    <input name="short_name" type="text"/>
+    <br/>
+    <input type="submit" value="Add genre"/>
+</form>

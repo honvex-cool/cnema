@@ -192,6 +192,38 @@ app.get(
     }
 )
 
+app.get(
+    '/add-genres',
+    async (_request, response) => {
+        const genres = await db.query('SELECT * FROM genres;')
+        return response.render(
+            'add-genres',
+            {
+                genres: genres.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-genre-action',
+    (request, response) => {
+        const form = request.body
+        if(form.short_name == '')
+            form.short_name = 'NULL'
+        else
+            form.short_name = `'${form.short_name}'`
+        db.query(
+            `INSERT INTO genres VALUES (DEFAULT, '${form.genre_name}', ${form.short_name});`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect('/add-genres')
+            }
+        )
+    }
+)
+
 app.listen(
     port,
     () => {
