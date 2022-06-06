@@ -1,0 +1,13 @@
+<h1>Add supported language</h1>
+<h3>Currently supported languages:</h3>
+<ul>
+<% for(let language of languages) { %>
+    <li><%= language.language_name %></li>
+<% } %>
+</ul>
+<form name="language_addition" action="/add-language-result" method="post">
+    <label for="language_name">New language:</label>
+    <input name="language_name" type="text" required/>
+    <br/>
+    <input type="submit" value="Add language"/>
+</form>

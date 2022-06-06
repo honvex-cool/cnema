@@ -1,0 +1,51 @@
+<h2>Here you can add a regionalization!</h2>
+<h3>Regionalizations currently present in database:</h3>
+<table>
+    <tr>
+        <th>No.</th>
+        <th>Audio</th>
+        <th>Lector</th>
+        <th>Subtitles</th>
+    </tr>
+    <% for(let i = 0; i < regionalizations.length; ++i) { %>
+        <tr>
+            <td><%= i + 1 %></td>
+            <td><%= regionalizations[i].audio %></td>
+            <td><%= regionalizations[i].lector %></td>
+            <td><%= regionalizations[i].subtitles %></td>
+        </tr>
+    <% } %>
+</table>
+<form name="regionalization_addition" action="/add-regionalization-result" method="post">
+    <label for="regionalization_audio">Audio: </label>
+    <select name="regionalization_audio">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="<%= language.language_id %>">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="regionalization_lector">Lector: </label>
+    <select name="regionalization_lector">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="<%= language.language_id %>">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="regionalization_subtitles">Subtitles: </label>
+    <select name="regionalization_subtitles">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="<%= language.language_id %>">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add regionalization"/>
+</form>

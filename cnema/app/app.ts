@@ -32,15 +32,19 @@ app.get(
 app.get(
     '/add-screening',
     async (_request, response) => {
+        const schedule = await db.query('SELECT * FROM schedule ORDER BY screening_date, screening_hour;')
+        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
         const movies = await db.query('SELECT movie_id, title FROM movies;')
         const languages = await db.query('SELECT * FROM languages;')
         const rooms = await db.query('SELECT * FROM rooms;')
         return response.render(
             'add-screening',
             {
+                schedule: schedule.rows,
                 movies: movies.rows,
                 languages: languages.rows,
                 rooms: rooms.rows,
+                regionalizations: regionalizations.rows,
             }
         )
     }
@@ -65,7 +69,6 @@ app.post(
                 ${form.screening_ticket_price}
             );
             `
-        console.log(q)
         db.query(
             q,
             (error, _result) => {
@@ -100,6 +103,73 @@ app.post(
                 if(error)
                     console.log(error.message)
                 response.redirect('/add-room')
+            }
+        )
+    }
+)
+
+app.get(
+    '/add-regionalization',
+    async (_request, response) => {
+        const languages = await db.query('SELECT * FROM languages;')
+        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
+        return response.render(
+            'add-regionalization',
+            {
+                languages: languages.rows,
+                regionalizations: regionalizations.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-regionalization-result',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `
+            INSERT INTO regionalizations
+            VALUES
+            (
+                DEFAULT,
+                ${form.regionalization_audio},
+                ${form.regionalization_lector},
+                ${form.regionalization_subtitles}
+            );
+            `,
+            (error, _result) => {
+                if(error)
+                    console.log("ERROR: " + error.message)
+                response.redirect('/add-regionalization')
+            }
+        )
+    }
+)
+
+app.get(
+    '/add-language',
+    async (_request, response) => {
+        const languages = await db.query('SELECT * FROM languages;')
+        return response.render(
+            'add-language',
+            {
+                languages: languages.rows
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-language-result',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO languages VALUES (DEFAULT, '${form.language_name}');`,
+            (error, _result) => {
+                if(error)
+                    console.log("ERROR: " + error.message)
+                response.redirect('/add-language')
             }
         )
     }
