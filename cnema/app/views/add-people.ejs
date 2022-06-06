@@ -1,0 +1,40 @@
+<h1>Add people</h1>
+<h2>Currently known people:</h2>
+
+</table>
+<form action="/add-person-action" method="post">
+    <label for="first_name">First name (optional):</label>
+    <input name="first_name" type="text" />
+    <br/>
+    <label for="last_name">Last name:</label>
+    <input name="last_name" type="text" required/>
+    <br/>
+    <label for="pseudonym">Pseudonym (optional):</label>
+    <input name="pseudonym" type="text"/>
+    <br/>
+    <input type="submit" value="Add person"/>
+</form>
+
+<table>
+    <tr>
+        <th>Id</th>
+        <th>First name</th>
+        <th>Last name</th>
+        <th>Pseudonym</th>
+        <th>Activity</th>
+        <th>[Actions]</th>
+    </tr>
+    <% for(let person of people) { %>
+        <tr>
+            <td><%= person.person_id %></td>
+            <td><%= person.first_name %></td>
+            <td><%= person.last_name %></td>
+            <td><%= person.pseudonym %></td>
+            <td><%= person.activity_in_industry %></td>
+            <td>
+                <% if(person.activity_in_industry == 0) { %>
+                    <a class="removal" href="/remove-person?person_id=<%= person.person_id %>">[remove]</a>
+                <% } %>
+            </td>
+        </tr>
+    <% } %>

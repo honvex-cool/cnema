@@ -1,10 +1,4 @@
 <h1>Add genres</h1>
-<h2>Currently known genres:</h2>
-<ul>
-    <% for(let genre of genres) { %>
-        <li><%= genre.genre_name %></li>
-    <% } %>
-</ul>
 <form action="/add-genre-action" method="post">
     <label for="genre_name">New genre name:</label>
     <input name="genre_name" type="text" required/>
@@ -14,3 +8,16 @@
     <br/>
     <input type="submit" value="Add genre"/>
 </form>
+<h2>Currently known genres:</h2>
+<ul>
+    <% for(let genre of genres) { %>
+        <li>
+            <%= genre.genre_name %>
+            <% if(genre.short_name) { %> (<%= genre.short_name %>) <% } %>
+            (<%= genre.occurence_count %> occurences)
+            <% if(genre.occurence_count == 0) { %>
+                <a class="removal" href="/remove-genre?genre_id=<%= genre.genre_id %>">[remove]</a>
+            <% } %>
+        </li>
+    <% } %>
+</ul>

@@ -1,19 +1,147 @@
 <h1>Movies present in our database: <%= movies.length %></h1>
 <h2>Add movie</h2>
-<form action="/add-movie" method="post">
+<form action="/add-movie-action" method="post">
     <label for="title">Title</label>
     <input name="title" type="text" required/>
     <br/>
-    <label for="age_rating">Title</label>
-    <input name="age_rating" type="number" min="0" max="19"/>
+    <label for="age_rating">Age rating</label>
+    <input name="age_rating" type="number" min="0" max="19" required/>
     <br/>
-    <label for="release_date">Title</label>
+    <label for="release_date">Release date</label>
     <input name="release_date" type="date"/>
     <br/>
-    <label for="release_date">Title</label>
-    <input name="release_date" type="date"/>
-    <input>
+    Length
+    <br/>
+    <label for="hours">Hours</label>
+    <input name="hours" type="number" min="0" max="23" required/>
+    <label for="minutes">Minutes</label>
+    <input name="minutes" type="number" min="0" max="59"required/>
+    <br/>
+    <select name="original_language">
+        <option value="NULL">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="<%= language.language_id %>">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add movie"/>
 </form>
+<br/>
+
+<h2>Add director to movie</h2>
+<form action="/add-movie-director-action" method="post">
+    <select name="director_id" required>
+        <option value="">[Select director]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of movies) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+                <%= movie.movie_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add director to movie"/>
+</form>
+<br/>
+
+<h2>Add composer to movie</h2>
+<form action="/add-movie-composer-action" method="post">
+    <select name="composer_id" required>
+        <option value="">[Select composer]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of movies) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+                <%= movie.movie_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add composer to movie"/>
+</form>
+<br/>
+
+<h2>Add screenwriter to movie</h2>
+<form action="/add-movie-screenwriter-action" method="post">
+    <select name="screenwriter_id" required>
+        <option value="">[Select screenwriter]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of movies) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+                <%= movie.movie_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add screenwriter to movie"/>
+</form>
+<br/>
+
+<h2>Add producer to movie</h2>
+<form action="/add-movie-producer-action" method="post">
+    <select name="producer_id" required>
+        <option value="">[Select producer]</option>
+        <% for(let producer of producers) { %>
+            <option value="<%= producer.producer_id %>">
+                <%= producer.company_name %>
+                <%= producer.producer_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of movies) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+                <%= movie.movie_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add producer to movie"/>
+</form>
+<br/>
+
+
+
 <h2>Movie list</h2>
 <table>
     <tr>

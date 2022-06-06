@@ -1,0 +1,19 @@
+<h1>Add producers</h1>
+<form action="/add-producer-action" method="post">
+    <label for="company_name">New producer name:</label>
+    <input name="company_name" type="text" required/>
+    <br/>
+    <input type="submit" value="Add producer"/>
+</form>
+<h2>Currently known producers:</h2>
+<ul>
+    <% for(let producer of producers) { %>
+        <li>
+            <%= producer.company_name %>
+            (<%= producer.occurence_count %> occurences)
+            <% if(producer.occurence_count == 0) { %>
+                <a class="removal" href="/remove-producer?producer_id=<%= producer.producer_id %>">[remove]</a>
+            <% } %>
+        </li>
+    <% } %>
+</ul>

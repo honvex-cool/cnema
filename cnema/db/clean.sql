@@ -33,6 +33,8 @@ DROP VIEW IF EXISTS full_screenings CASCADE;
 DROP VIEW IF EXISTS schedule CASCADE;
 DROP VIEW IF EXISTS full_schedule CASCADE;
 DROP VIEW IF EXISTS all_tickets CASCADE;
+DROP VIEW IF EXISTS genres_with_statistics CASCADE;
+DROP VIEW IF EXISTS people_with_activity CASCADE;
 
 DROP FUNCTION IF EXISTS short_format_review;
 DROP FUNCTION IF EXISTS format_person;
@@ -61,3 +63,9 @@ DROP FUNCTION IF EXISTS get_start;
 DROP FUNCTION IF EXISTS cant_cancel_hour_before;
 DROP FUNCTION IF EXISTS cancel_ticket;
 DROP FUNCTION IF EXISTS get_or_make_user_id;
+DROP FUNCTION IF EXISTS activity_count_as_parameterized;
+DROP FUNCTION IF EXISTS activity_count_as_actor;
+DROP FUNCTION IF EXISTS activity_count_as_director;
+DROP FUNCTION IF EXISTS activity_count_as_screenwriter;
+DROP FUNCTION IF EXISTS activity_count_as_composer;
+DROP FUNCTION IF EXISTS activity_count_as_reviewer;

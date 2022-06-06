@@ -59,6 +59,17 @@ ALTER TABLE movies_genres
         FOREIGN KEY(movie_id)
             REFERENCES movies(movie_id);
 ------
+
+CREATE OR REPLACE VIEW genres_with_statistics
+AS
+SELECT
+    genre_id,
+    genre_name,
+    short_name,
+    count(movie_id) AS occurence_count
+FROM
+    genres LEFT JOIN movies_genres USING(genre_id)
+GROUP BY genre_id;
 ------------
 
 ---- Producers (companies) ----
@@ -68,6 +79,16 @@ CREATE TABLE producers (
     CONSTRAINT pk_producers
         PRIMARY KEY(producer_id)
 );
+
+CREATE OR REPLACE VIEW producers_with_statistics
+AS
+SELECT
+    producer_id,
+    company_name,
+    count(movie_id) AS occurence_count
+FROM
+    producers LEFT JOIN movies_producers USING(producer_id)
+GROUP BY producer_id;
 
 -- connect movies and producers --
 CREATE TABLE movies_producers (
@@ -712,6 +733,110 @@ SELECT
     short_format_movie_reviews(movie_id) AS reviewed_as
 FROM
     movies LEFT JOIN languages ON languages.language_id = movies.original_language;
+
+CREATE OR REPLACE FUNCTION activity_count_as_parameterized(person integer, table_suffix text)
+RETURNS integer
+AS
+$$
+DECLARE
+    result integer;
+BEGIN
+    EXECUTE
+    'SELECT count(*) FROM movies_'
+    ||
+    table_suffix
+    ||
+    's WHERE '
+    ||
+    table_suffix
+    ||
+    '_id = '
+    ||
+    person :: text
+    ||
+    ';'
+    INTO result;
+    RETURN result;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION activity_count_as_actor(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN activity_count_as_parameterized(person, 'actor');
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION activity_count_as_director(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN activity_count_as_parameterized(person, 'director');
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION activity_count_as_screenwriter(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN activity_count_as_parameterized(person, 'screenwriter');
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION activity_count_as_composer(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN activity_count_as_parameterized(person, 'composer');
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION activity_count_as_reviewer(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN (SELECT count(*) FROM reviews_authors WHERE author_id = person);
+END;
+$$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION activity_count(person integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN
+        activity_count_as_actor(person)
+        +
+        activity_count_as_director(person)
+        +
+        activity_count_as_screenwriter(person)
+        +
+        activity_count_as_composer(person)
+        +
+        activity_count_as_reviewer(person);
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE VIEW people_with_activity
+AS
+SELECT
+    people.*,
+    activity_count(person_id) AS activity_in_industry
+FROM people;
 
 ------------------------
 
