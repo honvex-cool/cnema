@@ -5,6 +5,7 @@
         <% for(let movie of movies) { %>
             <option value="'<%= movie.title %>'">
                 <%= movie.title %>
+                <%= movie.movie_id %>
             </option>
         <% } %>
     </select>
