@@ -69,3 +69,6 @@ DROP FUNCTION IF EXISTS activity_count_as_director;
 DROP FUNCTION IF EXISTS activity_count_as_screenwriter;
 DROP FUNCTION IF EXISTS activity_count_as_composer;
 DROP FUNCTION IF EXISTS activity_count_as_reviewer;
+DROP FUNCTION IF EXISTS get_free_seats;
+DROP FUNCTION IF EXISTS add_to_schedule;
+DROP FUNCTION IF EXISTS activity_count;

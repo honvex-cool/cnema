@@ -30,118 +30,6 @@
 </form>
 <br/>
 
-<h2>Add director to movie</h2>
-<form action="/add-movie-director-action" method="post">
-    <select name="director_id" required>
-        <option value="">[Select director]</option>
-        <% for(let person of people) { %>
-            <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <select name="movie_id" required>
-        <option value="">[Select movie]</option>
-        <% for(let movie of movies) { %>
-            <option value="<%= movie.movie_id %>">
-                <%= movie.title %>
-                <%= movie.movie_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <input type="submit" value="Add director to movie"/>
-</form>
-<br/>
-
-<h2>Add composer to movie</h2>
-<form action="/add-movie-composer-action" method="post">
-    <select name="composer_id" required>
-        <option value="">[Select composer]</option>
-        <% for(let person of people) { %>
-            <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <select name="movie_id" required>
-        <option value="">[Select movie]</option>
-        <% for(let movie of movies) { %>
-            <option value="<%= movie.movie_id %>">
-                <%= movie.title %>
-                <%= movie.movie_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <input type="submit" value="Add composer to movie"/>
-</form>
-<br/>
-
-<h2>Add screenwriter to movie</h2>
-<form action="/add-movie-screenwriter-action" method="post">
-    <select name="screenwriter_id" required>
-        <option value="">[Select screenwriter]</option>
-        <% for(let person of people) { %>
-            <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <select name="movie_id" required>
-        <option value="">[Select movie]</option>
-        <% for(let movie of movies) { %>
-            <option value="<%= movie.movie_id %>">
-                <%= movie.title %>
-                <%= movie.movie_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <input type="submit" value="Add screenwriter to movie"/>
-</form>
-<br/>
-
-<h2>Add producer to movie</h2>
-<form action="/add-movie-producer-action" method="post">
-    <select name="producer_id" required>
-        <option value="">[Select producer]</option>
-        <% for(let producer of producers) { %>
-            <option value="<%= producer.producer_id %>">
-                <%= producer.company_name %>
-                <%= producer.producer_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <select name="movie_id" required>
-        <option value="">[Select movie]</option>
-        <% for(let movie of movies) { %>
-            <option value="<%= movie.movie_id %>">
-                <%= movie.title %>
-                <%= movie.movie_id %>
-            </option>
-        <% } %>
-    </select>
-    <br/>
-    <input type="submit" value="Add producer to movie"/>
-</form>
-<br/>
-
-
-
 <h2>Movie list</h2>
 <table>
     <tr>
@@ -161,7 +49,7 @@
     <% for(let movie of movies) { %>
         <tr>
             <td><%= movie.movie_id %></td>
-            <td><%= movie.title %></td>
+            <td><a href="/alter-movie?movie_id=<%= movie.movie_id %>"><%= movie.title %></a></td>
             <td><%= movie.genres %></td>
             <td><%= movie.age_rating %></td>
             <td><%= movie.release_date.toLocaleDateString() %></td>

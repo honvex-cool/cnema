@@ -1,0 +1,26 @@
+<h1>Add genres</h1>
+<form action="/add-ticket-type-action" method="post">
+    <label for="type_name">New genre name:</label>
+    <input name="type_name" type="text" required/>
+    <br/>
+    <label for="discount">Discount (percentage):</label>
+    <input name="discount" type="number" min="0" max="1" step="0.01" value="NULL"/>
+    <br/>
+    <input type="submit" value="Add genre"/>
+</form>
+<h2>Currently known genres:</h2>
+<ul>
+    <% for(let tp of types) { %>
+        <li>
+            <%= tp.type_name %>
+            <% if(tp.discount) { %>
+                (discount: <%= tp.discount * 100 %>%)
+            <% } else { %>
+                (full price)
+            <% } %>
+            <% if(tp.occurence_count == 0) { %>
+                <a class="removal" href="/remove-ticket-type?type_id=<%= tp.ticket_type_id %>">[remove]</a>
+            <% } %>
+        </li>
+    <% } %>
+</ul>

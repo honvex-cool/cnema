@@ -9,6 +9,9 @@ const app = express()
 const port = process.env.PORT
 
 const db = new pg.Client('postgres://cnemaadmin:bazunia@localhost:5432/cnema')
+
+let user_id: any;
+
 db.connect()
 
 app.use(express.static('public'))
@@ -16,7 +19,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 app.set('view engine', 'ejs')
-app.set('layout', './layouts/user-layout')
+app.set('layout', './layouts/layout')
 app.use(expressLayouts)
 
 app.get(
@@ -25,15 +28,31 @@ app.get(
 )
 
 app.get(
+    '/logout',
+    (_request, response) => {
+        user_id = undefined
+        response.redirect('/index')
+    }
+)
+
+app.get(
     '/index',
-    (_request, response) => response.render('index')
+    (_request, response) => {
+        if(user_id) {
+            if(user_id == -1)
+                response.render('admin-view')
+            else
+                response.render('user-view')
+        }
+        else
+            response.redirect('/login')
+    }
 )
 
 app.get(
     '/add-screening',
     async (_request, response) => {
         const schedule = await db.query('SELECT * FROM schedule ORDER BY screening_date, screening_hour;')
-        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
         const movies = await db.query('SELECT movie_id, title FROM movies;')
         const languages = await db.query('SELECT * FROM languages;')
         const rooms = await db.query('SELECT * FROM rooms;')
@@ -44,7 +63,6 @@ app.get(
                 movies: movies.rows,
                 languages: languages.rows,
                 rooms: rooms.rows,
-                regionalizations: regionalizations.rows,
             }
         )
     }
@@ -59,6 +77,7 @@ app.post(
             INSERT INTO schedule
             VALUES
             (
+                DEFAULT,
                 '${form.screening_date}',
                 '${form.screening_time}',
                 ${form.screening_movie},
@@ -69,6 +88,7 @@ app.post(
                 ${form.screening_ticket_price}
             );
             `
+        console.log(q)
         db.query(
             q,
             (error, _result) => {
@@ -142,24 +162,15 @@ app.get(
         return response.render('login-screen')
     }
 )
-app.get(
-    '/buy-ticket',
-    (_request, response) => {
-        return response.render('buy-screen')
-    }
-)
-
-app.get(
-    '/cancel-ticket',
-    (_request, response) => {
-        return response.render('cancel-screen')
-    }
-)
 
 app.post(
     '/ensure-user',
     (request, response) => {
         const form = request.body
+        if(form.username == 'admin' && form.mail == 'admin') {
+            user_id = -1
+            return response.redirect('/index')
+        }
         const q = `
             SELECT get_or_make_user_id('${form.username}', '${form.mail}') AS user_id;
             `
@@ -171,8 +182,8 @@ app.post(
                     console.log('You stuped: ' + error.message)
                     response.redirect('/login')
                 } else {
-                    console.log('USER ID: ' + result.rows[0].user_id)
-                    response.redirect('/login')
+                    user_id = result.rows[0].user_id
+                    response.redirect('/index')
                 }
             }
         )
@@ -193,6 +204,31 @@ app.get(
                 languages: languages.rows,
                 people: people.rows,
                 producers: producers.rows,
+            }
+        )
+    }
+)
+
+app.get(
+    '/alter-movie',
+    async (request, response) => {
+        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id=${request.query.movie_id};`)
+        const languages = await db.query('SELECT * FROM languages;')
+        const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
+        const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
+        const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=${request.query.movie_id} ORDER BY company_name ASC;`)
+        const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        return response.render(
+            'alter-movie',
+            {
+                movies: movies.rows,
+                languages: languages.rows,
+                people: people.rows,
+                producers: producers.rows,
+                producers_in_movie: producers_in_movie.rows,
+                screenwriters_in_movie: screenwriters_in_movie.rows,
+                composers_in_movie: composers_in_movie.rows,
             }
         )
     }
@@ -227,18 +263,37 @@ app.post(
 )
 
 app.post(
+    '/add-movie-actor-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO movies_actors VALUES ( 
+                    ${request.query.movie_id},
+                    ${form.actor_id},
+                    '${form.portraying}'
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
     '/add-movie-director-action',
     (request, response) => {
         const form = request.body
         db.query(
             `INSERT INTO movies_directors VALUES ( 
-                    ${form.movie_id},
+                    ${request.query.movie_id},
                     ${form.director_id}
                 );`,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
-                response.redirect('/browse-movies-admin')
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
     }
@@ -250,13 +305,31 @@ app.post(
         const form = request.body
         db.query(
             `INSERT INTO movies_composers VALUES ( 
-                    ${form.movie_id},
+                    ${request.query.movie_id},
                     ${form.composer_id}
                 );`,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
-                response.redirect('/browse-movies-admin')
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-composer-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_composers WHERE
+                    movie_id=${request.query.movie_id} AND
+                    composer_id=${form.composer_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
     }
@@ -268,13 +341,31 @@ app.post(
         const form = request.body
         db.query(
             `INSERT INTO movies_screenwriters VALUES ( 
-                    ${form.movie_id},
+                    ${request.query.movie_id},
                     ${form.screenwriter_id}
                 );`,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
-                response.redirect('/browse-movies-admin')
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-screenwriter-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_screenwriters WHERE
+                    movie_id=${request.query.movie_id} AND
+                    screenwriter_id=${form.screenwriter_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
     }
@@ -286,13 +377,31 @@ app.post(
         const form = request.body
         db.query(
             `INSERT INTO movies_producers VALUES ( 
-                    ${form.movie_id},
+                    ${request.query.movie_id},
                     ${form.producer_id}
                 );`,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
-                response.redirect('/browse-movies-admin')
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-producer-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_producers WHERE
+                    movie_id=${request.query.movie_id} AND
+                    producer_id=${form.producer_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
     }
@@ -417,6 +526,131 @@ app.post(
                 if(error)
                     console.log('ERROR: ' + error.message)
                 response.redirect('/add-producers')
+            }
+        )
+    }
+)
+
+app.get(
+    '/user-history',
+    async (_request, response) => {
+        const user_history = await db.query('SELECT * FROM user_history('+user_id+') ORDER BY date DESC,hour DESC, ticket_id DESC;')
+        return response.render(
+            'user-history',
+            {
+                user_history: user_history.rows,
+            }
+        )
+    }
+)
+
+app.get(
+    '/cancel-ticket',
+    (request, response) => {
+        db.query(
+            `SELECT cancel_ticket(${request.query.ticket_id});`,
+            (error, _result) => {
+                if(error)
+                    console.log('Samo życie')
+                response.redirect('/user-history')
+            }
+        )
+    }
+)
+
+
+app.get(
+    '/buy-ticket',
+    async (_request, response) => {
+        const schedule = await db.query('SELECT * FROM schedule ORDER BY screening_date, screening_hour;')
+        return response.render(
+            'buy-ticket',
+            {
+                schedule: schedule.rows,
+            }
+        )
+    }
+)
+
+app.get(
+    '/buy-for-screening',
+    async (request, response) => {
+        const schedule = (await db.query(`SELECT * FROM schedule WHERE screening_id = '${request.query.screening_id}'`))
+        const free_seats = await db.query(`SELECT * FROM get_free_seats('${request.query.screening_id}');`)
+        const ticket_types = await db.query('SELECT * FROM ticket_types;')
+        return response.render(
+            'buy-for-screening',
+            {
+                schedule: schedule.rows,
+                free_seats: free_seats.rows,
+                ticket_types: ticket_types.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/buy-for-screening-action',
+    (request, response) => {
+        const form = request.body
+        const q = `SELECT buy_ticket(
+                ${request.query.screening_id},
+                ${form.seat_id},
+                ${form.ticket_type_id},
+                NULL,
+                ${user_id});`
+        console.log(q)
+        db.query(
+            q,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
+            }
+        )
+    }
+)
+
+app.get(
+    '/add-ticket-type',
+    async (_request, response) => {
+        const types = await db.query('SELECT * FROM ticket_types_with_statistics ORDER BY ticket_type_id DESC;')
+        return response.render(
+            'add-ticket-type',
+            {
+                types: types.rows,
+            }
+        )
+    }
+)
+
+app.get(
+    '/remove-ticket-type',
+    async (request, response) => {
+        await db.query(`DELETE FROM ticket_types WHERE ticket_type_id = ${request.query.type_id};`)
+        return response.redirect('/add-ticket-type')
+    }
+)
+
+app.post(
+    '/add-ticket-type-action',
+    (request, response) => {
+        const form = request.body
+        const discount = form.discount === '' ? 'NULL' : form.discount
+        db.query(
+            `
+            INSERT INTO ticket_types
+            VALUES
+            (
+                DEFAULT,
+                '${form.type_name}',
+                ${discount}
+            );
+            `,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR ' + error.message)
+                response.redirect('/add-ticket-type')
             }
         )
     }

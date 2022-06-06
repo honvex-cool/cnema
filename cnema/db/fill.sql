@@ -273,8 +273,7 @@ VALUES
 (DEFAULT, 'Some Yellow Car', '159 minutes', 2, '2006-05-15', 1),
 (DEFAULT, 'A Brave Spider', '111 minutes', 4, '2002-12-15', 2),
 (DEFAULT, 'A First Journey', '39 minutes', 3, '1956-05-20', 9),
-(DEFAULT, 'The Entire Good Journey', '137 minutes', 10, '1998-09-20', 7),
-(DEFAULT, 'A Blue Traveller', '168 minutes', 18, '1967-07-15', 4);
+(DEFAULT, 'The Entire Good Journey', '137 minutes', 10, '1998-09-20', 7);
 
 INSERT INTO movies_genres
 VALUES

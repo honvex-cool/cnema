@@ -1,0 +1,53 @@
+<h2>Buy ticket</h2>
+<h3>Selected movie:</h3>
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Movie</th>
+        <th>Audio</th>
+        <th>Lector</th>
+        <th>Subtitles</th>
+        <th>Room name</th>
+        <th>Ticket price (base)</th>
+    </tr>
+    <% for(let screening of schedule) { %>
+        <tr>
+            <td><%= screening.screening_date.toLocaleDateString('pl-PL') %></td>
+            <td><%= screening.screening_hour.slice(0, -3) %></td>
+            <td><%= screening.title %></td>
+            <td><%= screening.audio %></td>
+            <td><%= screening.lector %></td>
+            <td><%= screening.subtitles %></td>
+            <td><%= screening.room_name %></td>
+            <td><%= screening.base_ticket_price %> PLN</td>
+        </tr>
+    <% } %>
+</table>
+<br/>
+<h3>Select seat:</h3>
+<form action="/buy-for-screening-action?screening_id=<%= schedule[0].screening_id %>" method="post">
+    <select name="seat_id" required>
+        <option value="">[Select seat]</option>
+        <% for(let seat of free_seats) { %>
+            <option value="<%= seat.seat_id %>">
+                Row: <%= seat.row_no %>
+                Seat: <%= seat.seat_no %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <select name="ticket_type_id" required>
+        <option value="">[Select ticket type]</option>
+        <% for(let type of ticket_types) { %>
+            <option value="<%= type.ticket_type_id %>">
+                <%= type.type_name %>
+                <%= type.discount %>%
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Buy ticket"/>
+</form>
+<br/>
+

@@ -1,0 +1,176 @@
+<h2>Alter movie:</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>title</th>
+        <th>genres</th>
+        <th>age rating</th>
+        <th>release date</th>
+        <th>language</th>
+        <th>directed by</th>
+        <th>screenplay by</th>
+        <th>starring</th>
+        <th>music by</th>
+        <th>produced by</th>
+        <th>reviewed as</th>
+    </tr>
+    <% for(let movie of movies) { %>
+        <tr>
+            <td><%= movie.movie_id %></td>
+            <td><%= movie.title %></td>
+            <td><%= movie.genres %></td>
+            <td><%= movie.age_rating %></td>
+            <td><%= movie.release_date.toLocaleDateString() %></td>
+            <td><%= movie.original_language %></td>
+            <td><%= movie.directed_by %></td>
+            <td><%= movie.screenplay_by %></td>
+            <td><%= movie.starring %></td>
+            <td><%= movie.music_by %></td>
+            <td><%= movie.produced_by %></td>
+            <td><%= movie.reviewed_as %></td>
+        </tr>
+    <% } %>
+</table>
+<br/>
+
+<h2>Add actor to movie</h2>
+<form action="/add-movie-actor-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="actor_id" required>
+        <option value="">[Select actor]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <label for="portraying">Portraying:</label>
+    <input name="portraying" type="text" required/>
+    <br/>
+    <input type="submit" value="Add actor"/>
+</form>
+<br/>
+
+<h2>Add director to movie</h2>
+<form action="/add-movie-director-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="director_id" required>
+        <option value="">[Select director]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add director"/>
+</form>
+<br/>
+
+<h2>Add composer to movie</h2>
+<form action="/add-movie-composer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="composer_id" required>
+        <option value="">[Select composer]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add composer"/>
+</form>
+<br/>
+
+<h2>Delete composer from movie</h2>
+<form action="/delete-movie-composer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="composer_id" required>
+        <option value="">[Select composer]</option>
+        <% for(let person of composers_in_movie) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete composer"/>
+</form>
+<br/>
+
+<h2>Add screenwriter to movie</h2>
+<form action="/add-movie-screenwriter-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="screenwriter_id" required>
+        <option value="">[Select screenwriter]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add screenwriter"/>
+</form>
+<br/>
+
+<h2>Delete screenwriter from movie</h2>
+<form action="/delete-movie-screenwriter-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="screenwriter_id" required>
+        <option value="">[Select screenwriter]</option>
+        <% for(let person of screenwriters_in_movie) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete screenwriter"/>
+</form>
+<br/>
+
+<h2>Add producer to movie</h2>
+<form action="/add-movie-producer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="producer_id" required>
+        <option value="">[Select producer]</option>
+        <% for(let producer of producers) { %>
+            <option value="<%= producer.producer_id %>">
+                <%= producer.company_name %>
+                <%= producer.producer_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add producer"/>
+</form>
+<br/>
+
+<h2>Delete producer from movie</h2>
+<form action="/delete-movie-producer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="producer_id" required>
+        <option value="">[Select producer]</option>
+        <% for(let producer of producers_in_movie) { %>
+            <option value="<%= producer.producer_id %>">
+                <%= producer.company_name %>
+                <%= producer.producer_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete producer"/>
+</form>
+<br/>

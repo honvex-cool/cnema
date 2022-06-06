@@ -1,0 +1,28 @@
+<h2>Buy tickets</h2>
+<h3>Current screening plan:</h3>
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Movie</th>
+        <th>Audio</th>
+        <th>Lector</th>
+        <th>Subtitles</th>
+        <th>Room name</th>
+        <th>Ticket price (base)</th>
+        <th></th>
+    </tr>
+    <% for(let screening of schedule) { %>
+        <tr>
+            <td><%= screening.screening_date.toLocaleDateString('pl-PL') %></td>
+            <td><%= screening.screening_hour.slice(0, -3) %></td>
+            <td><%= screening.title %></td>
+            <td><%= screening.audio %></td>
+            <td><%= screening.lector %></td>
+            <td><%= screening.subtitles %></td>
+            <td><%= screening.room_name %></td>
+            <td><%= screening.base_ticket_price %> PLN</td>
+            <td><a href="/buy-for-screening?screening_id=<%= screening.screening_id %>">Buy ticket</a></td>
+        </tr>
+    <% } %>
+</table>

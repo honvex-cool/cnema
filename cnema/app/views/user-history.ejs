@@ -1,0 +1,31 @@
+<h2>Ticket history</h2>
+<table>
+    <tr>
+        <th>Movie title</th>
+        <th>Screening hour</th>
+        <th>Screening date</th>
+        <th>Screening room</th>
+        <th>Row number</th>
+        <th>Seat number</th>
+        <th>Reservation date</th>
+        <th>Cancelation date</th>
+    </tr>
+    <% for(let us of user_history) { %>
+        <tr>
+            <td><%= us.title %></td>
+            <td><%= us.hour.slice(0, -3) %></td>
+            <td><%= us.date.toLocaleDateString('pl-PL') %></td>
+            <td><%= us.room %></td>
+            <td><%= us.row %></td>
+            <td><%= us.seat %></td>
+            <td><%= us.reservation_date.toLocaleDateString('pl-PL') %></td>
+            <td>
+                <% if(us.cancelled) { %>
+                    <%= us.cancelled.toLocaleDateString('pl-PL') %>
+                <% } else{ %>
+                    <a class="removal" href="/cancel-ticket?ticket_id=<%= us.ticket_id %>">[cancel]</a>
+                <% } %>
+            </td>
+        </tr>
+    <% } %>
+</table>

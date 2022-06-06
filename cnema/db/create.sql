@@ -80,23 +80,14 @@ CREATE TABLE producers (
         PRIMARY KEY(producer_id)
 );
 
-CREATE OR REPLACE VIEW producers_with_statistics
-AS
-SELECT
-    producer_id,
-    company_name,
-    count(movie_id) AS occurence_count
-FROM
-    producers LEFT JOIN movies_producers USING(producer_id)
-GROUP BY producer_id;
 
--- connect movies and producers --
 CREATE TABLE movies_producers (
     movie_id integer NOT NULL,
     producer_id integer NOT NULL,
     CONSTRAINT pk_movies_producers
         UNIQUE(movie_id, producer_id)
 );
+-- connect movies and producers --
 
 ALTER TABLE movies_producers
     ADD CONSTRAINT fk_movies_producers_movies
@@ -108,6 +99,16 @@ ALTER TABLE movies_producers
         FOREIGN KEY(producer_id)
             REFERENCES producers(producer_id);
 ------
+
+CREATE OR REPLACE VIEW producers_with_statistics
+AS
+SELECT
+    producer_id,
+    company_name,
+    count(movie_id) AS occurence_count
+FROM
+    producers LEFT JOIN movies_producers USING(producer_id)
+GROUP BY producer_id;
 ------------
 
 ---- People (actors, directors, etc.) ----
@@ -838,6 +839,14 @@ SELECT
     activity_count(person_id) AS activity_in_industry
 FROM people;
 
+CREATE OR REPLACE VIEW ticket_types_with_statistics
+AS
+SELECT
+    ticket_types.*,
+    count(ticket_id) AS occurence_count
+FROM
+    ticket_types LEFT JOIN tickets ON ticket_type = ticket_type_id
+GROUP BY ticket_type_id;
 ------------------------
 
 
@@ -1170,6 +1179,7 @@ CREATE OR REPLACE RULE full_screenings_no_update AS ON UPDATE TO full_screenings
 -- Schedule --
 CREATE OR REPLACE VIEW schedule AS
 SELECT
+    fs.screening_id,
     fs.screening_date,
     fs.screening_hour,
 	m.title,
@@ -1199,12 +1209,13 @@ CREATE OR REPLACE FUNCTION add_to_schedule(screening_date_ date,
                                             subtitles_language varchar,
                                             room_id_ integer,
                                             base_ticket_price_ numeric)
-RETURNS VOID AS
+RETURNS integer AS
 $$
 DECLARE
 rg_id integer;
 mr_id integer;
 as_id integer;
+result_id integer;
 BEGIN
 	IF movie_id_ IS NULL OR room_id_ IS NULL THEN 
 		RAISE EXCEPTION 'No room or movie found';
@@ -1247,7 +1258,8 @@ BEGIN
 		INSERT INTO movies_screenings VALUES(as_id,mr_id);
 	END IF;
 
-	INSERT INTO screenings VALUES(DEFAULT,screening_date_,as_id);
+	INSERT INTO screenings VALUES(DEFAULT,screening_date_,as_id) RETURNING screening_id INTO result_id;
+    RETURN result_id;
 END;
 $$
 LANGUAGE plpgsql;
@@ -1257,8 +1269,10 @@ RETURNS TRIGGER AS $schedule_insert$
 DECLARE
 mv_id integer := (SELECT movie_id FROM movies WHERE title=NEW.title);
 rm_id integer := (SELECT room_id FROM rooms WHERE room_name = NEW.room_name);
+result_id integer;
 BEGIN
-    SELECT add_to_schedule(NEW.screening_date,NEW.screening_hour,mv_id,NEW.audio,NEW.lector,NEW.subtitles,rm_id,NEW.base_ticket_price);
+    SELECT add_to_schedule(NEW.screening_date,NEW.screening_hour,mv_id,NEW.audio,NEW.lector,NEW.subtitles,rm_id,NEW.base_ticket_price) INTO result_id;
+    NEW.screening_id = result_id;
 	RETURN NEW;
 END;
 $schedule_insert$
@@ -1382,13 +1396,9 @@ CREATE OR REPLACE RULE full_schedule_no_update AS ON UPDATE TO full_schedule DO 
 
 
 
-
-
-
-
-
 --Przemo
-CREATE OR REPLACE FUNCTION get_or_make_user_id(un text,mail text) RETURNS int AS $$
+----------------------
+CREATE OR REPLACE FUNCTION get_or_make_user_id(un text, mail text) RETURNS int AS $$
 DECLARE
     x int;
 BEGIN
@@ -1403,6 +1413,7 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
+----------------------
 
 --get_id
 CREATE OR REPLACE FUNCTION get_roomid(s_id int) RETURNS int AS $$
@@ -1416,7 +1427,20 @@ BEGIN
 	RETURN (SELECT reservation_id FROM reservations WHERE customer=c_id ORDER BY reservation_date DESC LIMIT 1);
 END;
 $$ LANGUAGE plpgsql;
+--
 
+CREATE OR REPLACE FUNCTION get_free_seats( scr_id int ) RETURNS TABLE (
+	seat_id INTEGER,
+	row_no INTEGER,
+	seat_no INTEGER
+    ) AS $$
+DECLARE
+    r_id int;
+BEGIN
+    SELECT INTO r_id get_roomid(scr_id);
+    RETURN QUERY SELECT s.seat_id, s.row_no, s.seat_no FROM seats s WHERE s.room=r_id AND s.seat_id NOT IN (SELECT os.seat_id FROM occupied_seats(scr_id) os);
+END;
+$$ LANGUAGE plpgsql;
 -------------
 --INSERT TICKET WHEN SCREENING ALREADY STARTED/ENDED
 CREATE OR REPLACE FUNCTION cant_buy_ticket() RETURNS TRIGGER AS $$
@@ -1425,7 +1449,7 @@ BEGIN
                 OR (NEW.reservation IS NOT NULL AND NEW.reservation NOT IN (SELECT reservation_id FROM reservations))
                 OR (NEW.reservation IS NULL)
                 OR get_start(NEW.screening)<=NOW()
-		OR get_roomid(NEW.screening)=(SELECT room FROM seats s WHERE NEW.seat=s.seat_id)
+		        OR get_roomid(NEW.screening)!=(SELECT room FROM seats s WHERE NEW.seat=s.seat_id)
                 OR NEW.seat IN ( SELECT os.seat_id FROM occupied_seats(NEW.seat) os )
                 OR NEW.ticket_type NOT IN (SELECT ticket_type_id FROM ticket_types)
 	THEN
@@ -1460,7 +1484,7 @@ BEGIN
 		OR (res_id IS NOT NULL AND res_id NOT IN (SELECT reservation_id FROM reservations))
 		OR (res_id IS NULL AND (c_id IS NULL OR c_id NOT IN (SELECT customer_id FROM customers)))
 		OR get_start(scr_id)<=NOW()
-		OR get_roomid(scr_id)=(SELECT room FROM seats s WHERE s_id=s.seat_id)
+		OR get_roomid(scr_id)!=(SELECT room FROM seats s WHERE s_id=s.seat_id)
 		OR s_id IN ( SELECT os.seat_id FROM occupied_seats(scr_id) os )
 		OR type NOT IN (SELECT ticket_type_id FROM ticket_types)
 	THEN
@@ -1477,6 +1501,7 @@ $$ LANGUAGE plpgsql;
 ---------------------
 --ALL BOUGHT TICKETS FROM USER
 CREATE OR REPLACE FUNCTION user_history(id INTEGER) RETURNS TABLE(
+        "ticket_id" int,
         "title" varchar(100),
         "hour" time,
         "date" date,
@@ -1484,11 +1509,11 @@ CREATE OR REPLACE FUNCTION user_history(id INTEGER) RETURNS TABLE(
         "row" integer,
         "seat" integer,
         "reservation_date" timestamp,
-	"cancelled" timestamp
+	    "cancelled" timestamp
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		a.title AS "title", a.screening_hour AS "hour", a.screening_date AS "date", a.room_name AS "room", a.row_no AS "row", a.seat_no AS "seat",
+		a.ticket_id, a.title AS "title", a.screening_hour AS "hour", a.screening_date AS "date", a.room_name AS "room", a.row_no AS "row", a.seat_no AS "seat",
 		a.reservation_date AS "reservation_date", a.cancellation_date AS "cancelled"
 		FROM all_tickets a WHERE a.customer_id=id;
 END;
@@ -1534,7 +1559,8 @@ SELECT
 	s.seat_no,
 	r.reservation_date,
 	c.customer_id,
-	t.cancellation_date
+	t.cancellation_date,
+    tt.discount
 FROM
 	tickets t
 	JOIN seats s ON t.seat=s.seat_id
@@ -1542,6 +1568,8 @@ FROM
 	JOIN reservations r ON t.reservation=r.reservation_id
 	JOIN customers c ON c.customer_id=r.customer
 	JOIN full_schedule fs ON fs.screening_id=t.screening
+    JOIN ticket_types tt ON tt.ticket_type_id=t.ticket_type
+    
 ORDER BY screening_date DESC, screening_hour DESC;
 
 CREATE OR REPLACE RULE all_tickets_no_delete AS ON DELETE TO all_tickets DO INSTEAD NOTHING;

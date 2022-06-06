@@ -24,23 +24,6 @@
         </tr>
     <% } %>
 </table>
-<h3>Available regionalizations:</h3>
-<table>
-    <tr>
-        <th>No.</th>
-        <th>Audio</th>
-        <th>Lector</th>
-        <th>Subtitles</th>
-    </tr>
-    <% for(let i = 0; i < regionalizations.length; ++i) { %>
-        <tr>
-            <td><%= i + 1 %></td>
-            <td><%= regionalizations[i].audio %></td>
-            <td><%= regionalizations[i].lector %></td>
-            <td><%= regionalizations[i].subtitles %></td>
-        </tr>
-    <% } %>
-</table>
 <form name="screening_addition" action="/add-screening-result" method="post">
     <label for="screening_movie">Which movie? </label>
     <select name="screening_movie" required>
