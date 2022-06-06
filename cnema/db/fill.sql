@@ -1505,19 +1505,13 @@ VALUES
 (69, 47, 'Jose Luo');
 
 -- Rooms
-INSERT INTO rooms VALUES(DEFAULT,'Sala Tomka');
-INSERT INTO rooms VALUES(DEFAULT,'Sala Zosi');
-INSERT INTO rooms VALUES(DEFAULT,'Sala Basi');
-INSERT INTO rooms VALUES(DEFAULT,'Sala Kasi');
-INSERT INTO rooms VALUES(DEFAULT,'Sala Asi');
-INSERT INTO rooms VALUES(DEFAULT,'Sala Czesi');
-
-INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,NULL);
-INSERT INTO regionalizations VALUES(DEFAULT,2,NULL,NULL);
-INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,1);
-INSERT INTO regionalizations VALUES(DEFAULT,1,NULL,2);
-
-
+INSERT INTO rooms VALUES
+(DEFAULT,'Sala Tomka'),
+(DEFAULT,'Sala Zosi'),
+(DEFAULT,'Sala Basi'),
+(DEFAULT,'Sala Kasi'),
+(DEFAULT,'Sala Asi'),
+(DEFAULT,'Sala Czesi');
 
 -- Customers
 INSERT INTO customers (email,username)
