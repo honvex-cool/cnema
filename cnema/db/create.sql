@@ -1064,33 +1064,41 @@ ORDER BY fs.screening_date,fs.screening_hour,fs.screening_id;
 CREATE OR REPLACE RULE schedule_no_delete AS ON DELETE TO schedule DO INSTEAD NOTHING;
 CREATE OR REPLACE RULE schedule_no_update AS ON UPDATE TO schedule DO INSTEAD NOTHING;
 
-CREATE OR REPLACE FUNCTION schedule_insert() 
-RETURNS TRIGGER AS $schedule_insert$
+
+
+CREATE OR REPLACE FUNCTION add_to_schedule(screening_date_ date,
+                                            screening_hour_ time,
+                                            movie_id_ integer, 
+                                            audio_language varchar,
+                                            lector_language varchar,
+                                            subtitles_language varchar,
+                                            room_id_ integer,
+                                            base_ticket_price_ numeric)
+RETURNS VOID AS
+$$
 DECLARE
-mv_id integer := (SELECT movie_id FROM movies WHERE title=NEW.title);
-rm_id integer := (SELECT room_id FROM rooms WHERE room_name = NEW.room_name);
 rg_id integer;
 mr_id integer;
 as_id integer;
 BEGIN
-	IF mv_id IS NULL OR rm_id IS NULL THEN 
+	IF movie_id_ IS NULL OR room_id_ IS NULL THEN 
 		RAISE EXCEPTION 'No room or movie found';
 	END IF;
 
     SELECT regionalization_id INTO rg_id
 					FROM regionalizations_language_names 
-					WHERE COALESCE(audio,'##')=COALESCE(NEW.audio,'##') AND COALESCE(lector,'##')=COALESCE(NEW.lector,'##') AND COALESCE(subtitles,'##')=COALESCE(NEW.subtitles,'##');
+					WHERE COALESCE(audio,'##')=COALESCE(audio_language,'##') AND COALESCE(lector,'##')=COALESCE(lector_language,'##') AND COALESCE(subtitles,'##')=COALESCE(subtitles_language,'##');
     IF rg_id IS NULL THEN
         INSERT INTO regionalizations_language_names
-            VALUES(DEFAULT,NEW.audio,NEW.lector,NEW.subtitles) RETURNING regionalization_id INTO rg_id;
+            VALUES(DEFAULT,audio_language,lector_language,subtitles_language) RETURNING regionalization_id INTO rg_id;
     END IF;
 
 	SELECT movie_realization_id INTO mr_id
 				FROM movie_realizations 
-				WHERE movie=mv_id AND regionalization=rg_id;
+				WHERE movie=movie_id_ AND regionalization=rg_id;
 	IF mr_id IS NULL THEN
 		INSERT INTO movie_realizations 
-			VALUES (DEFAULT,mv_id,rg_id) RETURNING movie_realization_id INTO mr_id;
+			VALUES (DEFAULT,movie_id_,rg_id) RETURNING movie_realization_id INTO mr_id;
 	END IF;
 
 	SELECT abstract_screening_id INTO as_id
@@ -1100,21 +1108,32 @@ BEGIN
 						FROM
 							abstract_screenings a_s
 							JOIN movies_screenings ms ON a_s.abstract_screening_id = ms.abstract_screening
-						WHERE a_s.screening_hour = NEW.screening_hour
-							AND a_s.room = rm_id
-							AND a_s.base_ticket_price = NEW.base_ticket_price
+						WHERE a_s.screening_hour = screening_hour_
+							AND a_s.room = room_id_
+							AND a_s.base_ticket_price = base_ticket_price_
 						GROUP BY a_s.abstract_screening_id) AS "s"
 				WHERE "s"."count"=1 AND (SELECT movie_realization 
 										FROM movies_screenings 
 										WHERE abstract_screening=abstract_screening_id)=mr_id;
 	IF as_id IS NULL THEN
 		INSERT INTO abstract_screenings
-			VALUES(DEFAULT,NEW.screening_hour,rm_id,NEW.base_ticket_price)
+			VALUES(DEFAULT,screening_hour_,room_id_,base_ticket_price_)
 			RETURNING abstract_screening_id INTO as_id;
 		INSERT INTO movies_screenings VALUES(as_id,mr_id);
 	END IF;
 
-	INSERT INTO screenings VALUES(DEFAULT,NEW.screening_date,as_id);
+	INSERT INTO screenings VALUES(DEFAULT,screening_date_,as_id);
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION schedule_insert() 
+RETURNS TRIGGER AS $schedule_insert$
+DECLARE
+mv_id integer := (SELECT movie_id FROM movies WHERE title=NEW.title);
+rm_id integer := (SELECT room_id FROM rooms WHERE room_name = NEW.room_name);
+BEGIN
+    SELECT add_to_schedule(NEW.screening_date,NEW.screening_hour,mv_id,NEW.audio,NEW.lector,NEW.subtitles,rm_id,NEW.base_ticket_price);
 	RETURN NEW;
 END;
 $schedule_insert$
