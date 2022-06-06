@@ -34,3 +34,12 @@ table, th, td {
 tr {
     min-height: 100pt;
 }
+
+a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

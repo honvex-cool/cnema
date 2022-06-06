@@ -147,6 +147,34 @@ app.post(
     }
 )
 
+app.get(
+    '/add-language',
+    async (_request, response) => {
+        const languages = await db.query('SELECT * FROM languages;')
+        return response.render(
+            'add-language',
+            {
+                languages: languages.rows
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-language-result',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO languages VALUES (DEFAULT, '${form.language_name}');`,
+            (error, _result) => {
+                if(error)
+                    console.log("ERROR: " + error.message)
+                response.redirect('/add-language')
+            }
+        )
+    }
+)
+
 app.listen(
     port,
     () => {
