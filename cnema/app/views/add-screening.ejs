@@ -1,4 +1,46 @@
 <h2>This is a page where you can add a screening!</h2>
+<h3>Current screening plan:</h3>
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Movie</th>
+        <th>Audio</th>
+        <th>Lector</th>
+        <th>Subtitles</th>
+        <th>Room name</th>
+        <th>Ticket price (base)</th>
+    </tr>
+    <% for(let screening of schedule) { %>
+        <tr>
+            <td><%= screening.screening_date.toLocaleDateString('pl-PL') %></td>
+            <td><%= screening.screening_hour.slice(0, -3) %></td>
+            <td><%= screening.title %></td>
+            <td><%= screening.audio %></td>
+            <td><%= screening.lector %></td>
+            <td><%= screening.subtitles %></td>
+            <td><%= screening.room_name %></td>
+            <td><%= screening.base_ticket_price %> PLN</td>
+        </tr>
+    <% } %>
+</table>
+<h3>Available regionalizations:</h3>
+<table>
+    <tr>
+        <th>No.</th>
+        <th>Audio</th>
+        <th>Lector</th>
+        <th>Subtitles</th>
+    </tr>
+    <% for(let i = 0; i < regionalizations.length; ++i) { %>
+        <tr>
+            <td><%= i + 1 %></td>
+            <td><%= regionalizations[i].audio %></td>
+            <td><%= regionalizations[i].lector %></td>
+            <td><%= regionalizations[i].subtitles %></td>
+        </tr>
+    <% } %>
+</table>
 <form name="screening_addition" action="/add-screening-result" method="post">
     <label for="screening_movie">Which movie? </label>
     <select name="screening_movie" required>

@@ -32,15 +32,19 @@ app.get(
 app.get(
     '/add-screening',
     async (_request, response) => {
+        const schedule = await db.query('SELECT * FROM schedule ORDER BY screening_date, screening_hour;')
+        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
         const movies = await db.query('SELECT movie_id, title FROM movies;')
         const languages = await db.query('SELECT * FROM languages;')
         const rooms = await db.query('SELECT * FROM rooms;')
         return response.render(
             'add-screening',
             {
+                schedule: schedule.rows,
                 movies: movies.rows,
                 languages: languages.rows,
                 rooms: rooms.rows,
+                regionalizations: regionalizations.rows,
             }
         )
     }
