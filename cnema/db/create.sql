@@ -212,7 +212,7 @@ CREATE TABLE abstract_screenings(
     abstract_screening_id serial NOT NULL,
     screening_hour time NOT NULL,
     room integer NOT NULL,
-    base_ticket_price numeric NOT NULL,
+    base_ticket_price numeric NOT NULL CHECK(base_ticket_price>=0),
     CONSTRAINT pk_abstract_screenings
         PRIMARY KEY(abstract_screening_id)
 );
