@@ -11,7 +11,7 @@ CREATE TABLE languages (
 ---- Movies ----
 CREATE TABLE movies (
     movie_id serial NOT NULL,
-    title character varying(200) UNIQUE NOT NULL,
+    title character varying(200) NOT NULL,
     duration interval NOT NULL,
     age_rating integer NOT NULL,
     international_release date,
