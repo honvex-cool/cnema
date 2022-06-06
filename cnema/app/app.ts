@@ -109,45 +109,6 @@ app.post(
 )
 
 app.get(
-    '/add-regionalization',
-    async (_request, response) => {
-        const languages = await db.query('SELECT * FROM languages;')
-        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
-        return response.render(
-            'add-regionalization',
-            {
-                languages: languages.rows,
-                regionalizations: regionalizations.rows,
-            }
-        )
-    }
-)
-
-app.post(
-    '/add-regionalization-result',
-    (request, response) => {
-        const form = request.body
-        db.query(
-            `
-            INSERT INTO regionalizations
-            VALUES
-            (
-                DEFAULT,
-                ${form.regionalization_audio},
-                ${form.regionalization_lector},
-                ${form.regionalization_subtitles}
-            );
-            `,
-            (error, _result) => {
-                if(error)
-                    console.log("ERROR: " + error.message)
-                response.redirect('/add-regionalization')
-            }
-        )
-    }
-)
-
-app.get(
     '/add-language',
     async (_request, response) => {
         const languages = await db.query('SELECT * FROM languages;')
@@ -170,6 +131,62 @@ app.post(
                 if(error)
                     console.log("ERROR: " + error.message)
                 response.redirect('/add-language')
+            }
+        )
+    }
+)
+
+app.get(
+    '/login',
+    (_request, response) => {
+        return response.render('login-screen')
+    }
+)
+app.get(
+    '/buy-ticket',
+    (_request, response) => {
+        return response.render('buy-screen')
+    }
+)
+
+app.get(
+    '/cancel-ticket',
+    (_request, response) => {
+        return response.render('cancel-screen')
+    }
+)
+
+app.post(
+    '/ensure-user',
+    (request, response) => {
+        const form = request.body
+        const q = `
+            SELECT get_or_make_user_id('${form.username}', '${form.mail}') AS user_id;
+            `
+        console.log(q)
+        db.query(
+            q,
+            (error, result) => {
+                if(error) {
+                    console.log('You stuped: ' + error.message)
+                    response.redirect('/login')
+                } else {
+                    console.log('USER ID: ' + result.rows[0].user_id)
+                    response.redirect('/login')
+                }
+            }
+        )
+    }
+)
+
+app.get(
+    '/browse-movies-admin',
+    async (_request, response) => {
+        const movies = await db.query('SELECT * FROM movie_info ORDER BY movie_id DESC;')
+        return response.render(
+            'browse-movies-admin',
+            {
+                movies: movies.rows,
             }
         )
     }

@@ -1,0 +1,49 @@
+<h1>Movies present in our database: <%= movies.length %></h1>
+<h2>Add movie</h2>
+<form action="/add-movie" method="post">
+    <label for="title">Title</label>
+    <input name="title" type="text" required/>
+    <br/>
+    <label for="age_rating">Title</label>
+    <input name="age_rating" type="number" min="0" max="19"/>
+    <br/>
+    <label for="release_date">Title</label>
+    <input name="release_date" type="date"/>
+    <br/>
+    <label for="release_date">Title</label>
+    <input name="release_date" type="date"/>
+    <input>
+</form>
+<h2>Movie list</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>title</th>
+        <th>genres</th>
+        <th>age rating</th>
+        <th>release date</th>
+        <th>language</th>
+        <th>directed by</th>
+        <th>screenplay by</th>
+        <th>starring</th>
+        <th>music by</th>
+        <th>produced by</th>
+        <th>reviewed as</th>
+    </tr>
+    <% for(let movie of movies) { %>
+        <tr>
+            <td><%= movie.movie_id %></td>
+            <td><%= movie.title %></td>
+            <td><%= movie.genres %></td>
+            <td><%= movie.age_rating %></td>
+            <td><%= movie.release_date.toLocaleDateString() %></td>
+            <td><%= movie.original_language %></td>
+            <td><%= movie.directed_by %></td>
+            <td><%= movie.screenplay_by %></td>
+            <td><%= movie.starring %></td>
+            <td><%= movie.music_by %></td>
+            <td><%= movie.produced_by %></td>
+            <td><%= movie.reviewed_as %></td>
+        </tr>
+    <% } %>
+</table>
