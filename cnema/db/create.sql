@@ -2,7 +2,7 @@
 ---- Languages ----
 CREATE TABLE languages (
     language_id serial NOT NULL,
-    language_name character varying(40) NOT NULL,
+    language_name character varying(40) UNIQUE NOT NULL,
     CONSTRAINT pk_languages
         PRIMARY KEY(language_id)
 );
@@ -11,7 +11,7 @@ CREATE TABLE languages (
 ---- Movies ----
 CREATE TABLE movies (
     movie_id serial NOT NULL,
-    title character varying(200) NOT NULL,
+    title character varying(200) UNIQUE NOT NULL,
     duration interval NOT NULL,
     age_rating integer NOT NULL,
     international_release date,
@@ -64,7 +64,7 @@ ALTER TABLE movies_genres
 ---- Producers (companies) ----
 CREATE TABLE producers (
     producer_id serial NOT NULL,
-    company_name character varying(100) NOT NULL,
+    company_name character varying(100) UNIQUE NOT NULL,
     CONSTRAINT pk_producers
         PRIMARY KEY(producer_id)
 );
@@ -146,9 +146,7 @@ ALTER TABLE movies_directors
 ---- Rooms ----
 CREATE TABLE rooms (
     room_id serial NOT NULL,
-    room_name character varying(100),
-    CONSTRAINT unq_rooms_room_id
-        UNIQUE(room_id),
+    room_name character varying(100) UNIQUE NOT NULL,
     CONSTRAINT pk_rooms
         PRIMARY KEY(room_id)
 );
@@ -183,8 +181,6 @@ CREATE TABLE regionalizations (
     audio integer,
     lector integer,
     subtitles integer,
-    CONSTRAINT unq_regionalizations_regionalization_id
-        UNIQUE(regionalization_id),
     CONSTRAINT pk_regionalizations
         PRIMARY KEY(regionalization_id)
 );
@@ -238,6 +234,10 @@ CREATE TABLE screenings (
         PRIMARY KEY(screening_id)
 );
 
+ALTER TABLE screenings
+    ADD CONSTRAINT unq_screenings
+        UNIQUE(screening_date,abstract_screening);
+
 -- connect screenings and abstract_screenings --
 ALTER TABLE screenings
     ADD CONSTRAINT fk_screenings_abstract_screenings
@@ -280,6 +280,10 @@ CREATE TABLE movies_screenings(
     movie_realization integer NOT NULL
 );
 
+ALTER TABLE movies_screenings
+    ADD CONSTRAINT unq_movies_screenings
+        UNIQUE(abstract_screening,movie_realization);
+
 -- connect movies_screenings and movie_realizations --
 ALTER TABLE movies_screenings
     ADD CONSTRAINT fk_movies_screenings_movie_realizations
@@ -309,7 +313,7 @@ CREATE TABLE customers (
 ---- Ticket types ----
 CREATE TABLE ticket_types (
     ticket_type_id serial NOT NULL,
-    type_name character varying(40),
+    type_name character varying(40) UNIQUE NOT NULL,
     discount numeric,
     CONSTRAINT pk_ticket_types
         PRIMARY KEY(ticket_type_id)
@@ -962,7 +966,7 @@ CREATE OR REPLACE RULE most_popular_seats_no_update AS ON UPDATE TO most_popular
 ------
 
 -- Regionalizations_language_names --
-CREATE OR REPLACE VIEW regionalizations_langague_names AS
+CREATE OR REPLACE VIEW regionalizations_language_names AS
 SELECT
 	rg.regionalization_id,
 	al.language_name AS "audio",
@@ -976,8 +980,8 @@ FROM
 
 
 
-CREATE OR REPLACE FUNCTION regionalizations_langague_names_insert() 
-RETURNS TRIGGER AS $regionalizations_langague_names_insert$
+CREATE OR REPLACE FUNCTION regionalizations_language_names_insert() 
+RETURNS TRIGGER AS $regionalizations_language_names_insert$
 DECLARE
 audio_id integer := NULL;
 lector_id integer := NULL;
@@ -1004,13 +1008,13 @@ BEGIN
 	INSERT INTO regionalizations VALUES(DEFAULT,audio_id,lector_id,subtitles_id) RETURNING regionalization_id INTO NEW.regionalization_id;
     RETURN NEW;
 END;
-$regionalizations_langague_names_insert$
+$regionalizations_language_names_insert$
 LANGUAGE plpgsql;
-CREATE TRIGGER regionalizations_langague_names_insert INSTEAD OF INSERT ON regionalizations_langague_names
-FOR EACH ROW EXECUTE PROCEDURE regionalizations_langague_names_insert();
+CREATE TRIGGER regionalizations_language_names_insert INSTEAD OF INSERT ON regionalizations_language_names
+FOR EACH ROW EXECUTE PROCEDURE regionalizations_language_names_insert();
 
-CREATE OR REPLACE RULE regionalizations_langague_names_no_delete AS ON DELETE TO regionalizations_langague_names DO INSTEAD NOTHING;
-CREATE OR REPLACE RULE regionalizations_langague_names_no_update AS ON UPDATE TO regionalizations_langague_names DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE regionalizations_language_names_no_delete AS ON DELETE TO regionalizations_language_names DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE regionalizations_language_names_no_update AS ON UPDATE TO regionalizations_language_names DO INSTEAD NOTHING;
 ------
 
 -- Full screenings --
@@ -1034,6 +1038,10 @@ FROM
 WHERE s.screening_date >= NOW()::date
 ORDER BY s.screening_date,a_s.screening_hour,s.screening_id;
 
+CREATE OR REPLACE RULE full_screenings_no_delete AS ON DELETE TO full_screenings DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE full_screenings_no_insert AS ON INSERT TO full_screenings DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE full_screenings_no_update AS ON UPDATE TO full_screenings DO INSTEAD NOTHING;
+
 -- Schedule --
 CREATE OR REPLACE VIEW schedule AS
 SELECT
@@ -1049,7 +1057,7 @@ FROM
 	full_screenings fs
 	JOIN rooms r ON fs.room=r.room_id
 	JOIN movies m ON fs.movie=m.movie_id
-	JOIN regionalizations_langague_names rln ON fs.regionalization = rln.regionalization_id
+	JOIN regionalizations_language_names rln ON fs.regionalization = rln.regionalization_id
 WHERE fs.screening_date >= NOW()::date
 ORDER BY fs.screening_date,fs.screening_hour,fs.screening_id;
 
@@ -1070,10 +1078,10 @@ BEGIN
 	END IF;
 
     SELECT regionalization_id INTO rg_id
-					FROM regionalizations_langague_names 
+					FROM regionalizations_language_names 
 					WHERE COALESCE(audio,'##')=COALESCE(NEW.audio,'##') AND COALESCE(lector,'##')=COALESCE(NEW.lector,'##') AND COALESCE(subtitles,'##')=COALESCE(NEW.subtitles,'##');
     IF rg_id IS NULL THEN
-        INSERT INTO regionalizations_langague_names
+        INSERT INTO regionalizations_language_names
             VALUES(DEFAULT,NEW.audio,NEW.lector,NEW.subtitles) RETURNING regionalization_id INTO rg_id;
     END IF;
 
