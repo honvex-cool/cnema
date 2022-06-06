@@ -65,7 +65,6 @@ app.post(
                 ${form.screening_ticket_price}
             );
             `
-        console.log(q)
         db.query(
             q,
             (error, _result) => {
@@ -100,6 +99,45 @@ app.post(
                 if(error)
                     console.log(error.message)
                 response.redirect('/add-room')
+            }
+        )
+    }
+)
+
+app.get(
+    '/add-regionalization',
+    async (_request, response) => {
+        const languages = await db.query('SELECT * FROM languages;')
+        const regionalizations = await db.query('SELECT * FROM regionalizations_language_names;')
+        return response.render(
+            'add-regionalization',
+            {
+                languages: languages.rows,
+                regionalizations: regionalizations.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-regionalization-result',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `
+            INSERT INTO regionalizations
+            VALUES
+            (
+                DEFAULT,
+                ${form.regionalization_audio},
+                ${form.regionalization_lector},
+                ${form.regionalization_subtitles}
+            );
+            `,
+            (error, _result) => {
+                if(error)
+                    console.log("ERROR: " + error.message)
+                response.redirect('/add-regionalization')
             }
         )
     }

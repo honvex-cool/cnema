@@ -954,7 +954,7 @@ CREATE OR REPLACE RULE most_popular_seats_no_update AS ON UPDATE TO most_popular
 ------
 
 -- Regionalizations_language_names --
-CREATE OR REPLACE VIEW regionalizations_langague_names AS
+CREATE OR REPLACE VIEW regionalizations_language_names AS
 SELECT
 	rg.regionalization_id,
 	al.language_name AS "audio",
@@ -966,9 +966,9 @@ FROM
 	LEFT OUTER JOIN languages ll ON rg.lector = ll.language_id
 	LEFT OUTER JOIN languages sl ON rg.subtitles = sl.language_id;
 
-CREATE OR REPLACE RULE regionalizations_langague_names_no_delete AS ON DELETE TO regionalizations_langague_names DO INSTEAD NOTHING;
-CREATE OR REPLACE RULE regionalizations_langague_names_no_insert AS ON INSERT TO regionalizations_langague_names DO INSTEAD NOTHING;
-CREATE OR REPLACE RULE regionalizations_langague_names_no_update AS ON UPDATE TO regionalizations_langague_names DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE regionalizations_language_names_no_delete AS ON DELETE TO regionalizations_language_names DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE regionalizations_language_names_no_insert AS ON INSERT TO regionalizations_language_names DO INSTEAD NOTHING;
+CREATE OR REPLACE RULE regionalizations_language_names_no_update AS ON UPDATE TO regionalizations_language_names DO INSTEAD NOTHING;
 ------
 
 -- Full screenings --
@@ -1007,7 +1007,7 @@ FROM
 	full_screenings fs
 	JOIN rooms r ON fs.room=r.room_id
 	JOIN movies m ON fs.movie=m.movie_id
-	JOIN regionalizations_langague_names rln ON fs.regionalization = rln.regionalization_id
+	JOIN regionalizations_language_names rln ON fs.regionalization = rln.regionalization_id
 WHERE fs.screening_date >= NOW()::date
 ORDER BY fs.screening_date,fs.screening_hour,fs.screening_id;
 
@@ -1019,7 +1019,7 @@ RETURNS TRIGGER AS $schedule_insert$
 DECLARE
 mv_id integer := (SELECT movie_id FROM movies WHERE title=NEW.title);
 rg_id integer := (SELECT regionalization_id 
-					FROM regionalizations_langague_names 
+					FROM regionalizations_language_names 
 					WHERE COALESCE(audio,'##')=COALESCE(NEW.audio,'##') AND COALESCE(lector,'##')=COALESCE(NEW.lector,'##') AND COALESCE(subtitles,'##')=COALESCE(NEW.subtitles,'##'));
 rm_id integer := (SELECT room_id FROM rooms WHERE room_name = NEW.room_name);
 mr_id integer;
