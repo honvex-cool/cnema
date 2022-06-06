@@ -60,3 +60,4 @@ DROP FUNCTION IF EXISTS user_history;
 DROP FUNCTION IF EXISTS get_start;
 DROP FUNCTION IF EXISTS cant_cancel_hour_before;
 DROP FUNCTION IF EXISTS cancel_ticket;
+DROP FUNCTION IF EXISTS get_or_make_user_id;
