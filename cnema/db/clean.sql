@@ -60,3 +60,4 @@ DROP FUNCTION user_history;
 DROP FUNCTION get_start;
 DROP FUNCTION cant_cancel_hour_before;
 DROP FUNCTION cancel_ticket;
+DROP FUNCTION get_or_make_user_id;
