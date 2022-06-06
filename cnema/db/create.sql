@@ -1244,6 +1244,22 @@ CREATE OR REPLACE RULE full_schedule_no_update AS ON UPDATE TO full_schedule DO 
 
 
 --Przemo
+CREATE OR REPLACE FUNCTION get_or_make_user_id(un text,mail text) RETURNS int AS $$
+DECLARE
+    x int;
+BEGIN
+    IF (SELECT customer_id FROM customers c WHERE c.email=mail) IS NULL THEN
+        INSERT INTO customers VALUES(DEFAULT, un, mail) RETURNING customer_id INTO x;
+        RETURN x;
+    END IF;
+    IF (SELECT customer_id FROM customers c WHERE c.email=mail AND c.username = un) IS NULL THEN
+        RAISE EXCEPTION 'Email is taken';
+    END IF;
+    RETURN (SELECT customer_id FROM customers c WHERE c.email=mail);
+
+END;
+$$ LANGUAGE plpgsql;
+
 --get_id
 CREATE OR REPLACE FUNCTION get_roomid(s_id int) RETURNS int AS $$
 BEGIN
