@@ -660,6 +660,14 @@ app.post(
     }
 )
 
+app.listen(
+    port,
+    () => {
+        console.log(`[server] Server is running at port ${port}!`)
+    }
+)
+
+
 app.get(
     '/manage-reviews',
     async (_request, response) => {
@@ -840,12 +848,5 @@ app.post(
                 response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
-    }
-)
-
-app.listen(
-    port,
-    () => {
-        console.log(`[server] Server is running at port ${port}!`)
     }
 )
