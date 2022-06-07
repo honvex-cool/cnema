@@ -847,6 +847,61 @@ SELECT
 FROM
     ticket_types LEFT JOIN tickets ON ticket_type = ticket_type_id
 GROUP BY ticket_type_id;
+
+CREATE OR REPLACE FUNCTION format_journal(journal journals)
+RETURNS text
+AS
+$$
+BEGIN
+    RETURN journal.full_name || coalesce(' (' || journal.short_name || ')', '');
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION format_review_movies(review integer)
+RETURNS text
+AS
+$$
+BEGIN
+    RETURN (
+        SELECT string_agg(title, ', ')
+        FROM
+            movies_reviews JOIN movies USING(movie_id)
+        WHERE review_id = review
+    );
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION format_review_authors(review integer)
+RETURNS text
+AS
+$$
+BEGIN
+    RETURN (
+        SELECT string_agg(format_person(people), ', ')
+        FROM
+            reviews_authors JOIN people ON person_id = author_id
+        WHERE review_id = review
+    );
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE VIEW review_info
+AS
+SELECT
+    review_id,
+    title,
+    (SELECT format_journal(journals) FROM journals WHERE journals.journal_id = reviews.journal_id) AS journal,
+    format_review_movies(review_id) AS of_movies,
+    format_review_authors(review_id) AS authors,
+    contents,
+    summary,
+    publication_date,
+    stars
+FROM reviews
+GROUP BY review_id;
 ------------------------
 
 
