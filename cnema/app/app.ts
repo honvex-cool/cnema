@@ -763,6 +763,36 @@ app.get(
 )
 
 app.get(
+    '/sum-money',
+    async (request, response) => {
+        const money = request.query.money
+        const s_beg = request.query.s_beg
+        const s_end = request.query.s_end
+        return response.render(
+            'sum-money',
+            {
+                money: money,
+                s_beg: s_beg,
+                s_end: s_end,
+            }
+        )
+    }
+)
+
+
+app.post(
+    '/sum-money-action',
+    async (request, response) => {
+        console.log("dupa")
+        const s_beg = request.body.s_beg
+        const s_end = request.body.s_end
+        const money = await db.query(`SELECT sum(s.x) FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN '${s_beg}' AND '${s_end}') AS "s";`)
+        const money_sum = money.rows[0][0]
+        response.redirect(`/sum-money?money=${money_sum}&s_beg=${s_beg}&s_end=${s_end}`)
+    }
+)
+
+app.get(
     '/best-seats',
     async (_request, response) => {
         const best_seats = await db.query('SELECT * FROM most_popular_seats JOIN rooms ON room=room_id JOIN seats USING(seat_id);')

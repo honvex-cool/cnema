@@ -1029,7 +1029,7 @@ BEGIN
                     tickets t JOIN screenings s ON t.screening = s.screening_id
 					JOIN abstract_screenings a ON s.abstract_screening=a.abstract_screening_id
                     JOIN ticket_types tt ON t.ticket_type = tt.ticket_type_id
-                WHERE t.reservation = reservation_id
+                WHERE t.reservation = reservation_id AND t.cancellation_date IS NULL
             ),
             0
         );

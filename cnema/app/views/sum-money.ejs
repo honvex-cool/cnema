@@ -1,0 +1,19 @@
+<h2>Money sum:</h2>
+<table>
+    <tr>
+        <td>Money sum between <%= s_beg %> and <%= s_end %></td>
+    </tr>
+    <tr>
+        <td><%= money %></td>
+    </tr>
+</table>
+<br/>
+
+<form action="/sum-money-action" method="post">
+    <label for="s_beg">From</label>
+    <input name="s_beg" type="date" required/>
+    <label for="s_end">To</label>
+    <input name="s_end" type="date" required/>
+    <input type="submit" value="Sum"/>
+</form>
+<br/>
