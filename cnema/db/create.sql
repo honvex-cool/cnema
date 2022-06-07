@@ -899,7 +899,8 @@ SELECT
     contents,
     summary,
     publication_date,
-    stars
+    stars,
+    (SELECT count(*) FROM movies_reviews WHERE movies_reviews.review_id = reviews.review_id) AS reference_count
 FROM reviews
 GROUP BY review_id;
 ------------------------

@@ -40,6 +40,7 @@
         <th>concerning movies</th>
         <th>summary</th>
         <th>opinion</th>
+        <th>[actions]</th>
     </tr>
     <% for(let review of reviews) { %>
         <tr>
@@ -58,6 +59,11 @@
                     <%= review.stars %> / 10 stars
                 <% } %>
             </td>
+            <% if(review.reference_count == 0) { %>
+                <td>
+                    <a class="removal" href="/remove-review?review_id=<%= review.review_id %>">[remove]</a>
+                </td>
+            <% } %>
         </tr>
     <% } %>
 </table>

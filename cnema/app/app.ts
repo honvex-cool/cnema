@@ -795,6 +795,14 @@ app.post(
     }
 )
 
+app.get(
+    '/remove-review',
+    async (request, response) => {
+        await db.query(`DELETE FROM reviews WHERE review_id = ${request.query.review_id};`)
+        return response.redirect('/manage-reviews')
+    }
+)
+
 app.listen(
     port,
     () => {
