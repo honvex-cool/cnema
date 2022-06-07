@@ -11,6 +11,7 @@ const port = process.env.PORT
 const db = new pg.Client('postgres://cnemaadmin:bazunia@localhost:5432/cnema')
 
 let user_id: any;
+let res_id: any;
 
 db.connect()
 
@@ -31,6 +32,7 @@ app.get(
     '/logout',
     (_request, response) => {
         user_id = undefined
+        res_id = undefined
         response.redirect('/index')
     }
 )
@@ -677,21 +679,39 @@ app.post(
     '/buy-for-screening-action',
     (request, response) => {
         const form = request.body
-        const q = `SELECT buy_ticket(
-                ${request.query.screening_id},
-                ${form.seat_id},
-                ${form.ticket_type_id},
-                NULL,
-                ${user_id});`
-        console.log(q)
-        db.query(
-            q,
-            (error, _result) => {
-                if(error)
-                    console.log('ERROR: ' + error.message)
-                response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
-            }
-        )
+        if(res_id){
+            db.query(
+                `SELECT buy_ticket(
+                    ${request.query.screening_id},
+                    ${form.seat_id},
+                    ${form.ticket_type_id},
+                    ${res_id},
+                    ${user_id});`,
+                (error, _result) => {
+                    if(error)
+                        console.log('ERROR: ' + error.message)
+                    response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
+                }
+            )
+        }
+        else{
+            db.query(
+                `SELECT buy_ticket(
+                    ${request.query.screening_id},
+                    ${form.seat_id},
+                    ${form.ticket_type_id},
+                    NULL,
+                    ${user_id}) AS "re";`,
+                (error, result) => {
+                    if(error)
+                        console.log('ERROR: ' + error.message)
+                    else
+                        res_id = result.rows[0].re
+                    response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
+                }
+            )
+
+        }
     }
 )
 

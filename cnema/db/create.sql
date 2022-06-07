@@ -1506,7 +1506,7 @@ BEGIN
                 OR (NEW.reservation IS NULL)
                 OR get_start(NEW.screening)<=NOW()
 		        OR get_roomid(NEW.screening)!=(SELECT room FROM seats s WHERE NEW.seat=s.seat_id)
-                OR NEW.seat IN ( SELECT os.seat_id FROM occupied_seats(NEW.seat) os )
+                OR NEW.seat IN ( SELECT os.seat_id FROM occupied_seats(NEW.screening) os )
                 OR NEW.ticket_type NOT IN (SELECT ticket_type_id FROM ticket_types)
 	THEN
 		RAISE EXCEPTION 'cant insert ticket';
@@ -1534,7 +1534,7 @@ CREATE TRIGGER delete_reservation_if_empty AFTER DELETE ON tickets
 FOR EACH ROW EXECUTE PROCEDURE delete_reservation_if_empty();
 -------------
 --BUY TICKET FUNCTION
-CREATE OR REPLACE FUNCTION buy_ticket(scr_id int, s_id int, type int, res_id int, c_id int) RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION buy_ticket(scr_id int, s_id int, type int, res_id int, c_id int) RETURNS integer AS $$
 BEGIN
 	IF	get_start(scr_id) IS NULL
 		OR (res_id IS NOT NULL AND res_id NOT IN (SELECT reservation_id FROM reservations))
@@ -1551,7 +1551,7 @@ BEGIN
 		INSERT INTO reservations VALUES(DEFAULT, c_id, NOW()) RETURNING reservation_id INTO res_id;
 	END IF;
 	INSERT INTO tickets VALUES(DEFAULT, scr_id, s_id, type, res_id, NULL);
-	RETURN true;
+	RETURN res_id;
 END;
 $$ LANGUAGE plpgsql;
 ---------------------
