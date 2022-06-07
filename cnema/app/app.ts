@@ -216,9 +216,13 @@ app.get(
         const languages = await db.query('SELECT * FROM languages;')
         const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
         const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
+        const genres = await db.query('SELECT * FROM genres;')
         const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=${request.query.movie_id} ORDER BY company_name ASC;`)
         const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
         const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people ON director_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people ON actor_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        const genres_in_movie = await db.query(`SELECT * FROM movies_genres JOIN genres USING(genre_id) WHERE movie_id=${request.query.movie_id} ORDER BY genre_name ASC;`)
         return response.render(
             'alter-movie',
             {
@@ -226,9 +230,13 @@ app.get(
                 languages: languages.rows,
                 people: people.rows,
                 producers: producers.rows,
+                genres: genres.rows,
                 producers_in_movie: producers_in_movie.rows,
                 screenwriters_in_movie: screenwriters_in_movie.rows,
                 composers_in_movie: composers_in_movie.rows,
+                directors_in_movie: directors_in_movie.rows,
+                actors_in_movie: actors_in_movie.rows,
+                genres_in_movie: genres_in_movie.rows,
             }
         )
     }
@@ -282,6 +290,31 @@ app.post(
 )
 
 app.post(
+    '/delete-movie-actor-action',
+    (request, response) => {
+        const form = request.body
+        let q = `DELETE FROM movies_actors WHERE
+        movie_id=${request.query.movie_id} AND
+        actor_id=${form.actor.person_id} AND
+        portraying='${form.actor.portraying}'
+    ;`
+    console.log(q)
+        db.query(
+            `DELETE FROM movies_actors WHERE
+                    movie_id=${request.query.movie_id} AND
+                    actor_id=${form.actor.person_id} AND
+                    portraying='${form.actor.portraying}'
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
     '/add-movie-director-action',
     (request, response) => {
         const form = request.body
@@ -290,6 +323,24 @@ app.post(
                     ${request.query.movie_id},
                     ${form.director_id}
                 );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-director-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_directors WHERE
+                    movie_id=${request.query.movie_id} AND
+                    director_id=${form.director_id}
+                ;`,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -397,6 +448,42 @@ app.post(
             `DELETE FROM movies_producers WHERE
                     movie_id=${request.query.movie_id} AND
                     producer_id=${form.producer_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-movie-genre-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO movies_genres VALUES ( 
+                    ${request.query.movie_id},
+                    ${form.genre_id}
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-genre-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_genres WHERE
+                    movie_id=${request.query.movie_id} AND
+                    genre_id=${form.genre_id}
                 ;`,
             (error, _result) => {
                 if(error)
@@ -651,6 +738,19 @@ app.post(
                 if(error)
                     console.log('ERROR ' + error.message)
                 response.redirect('/add-ticket-type')
+            }
+        )
+    }
+)
+
+app.get(
+    '/view-movie',
+    async (request, response) => {
+        const movies = await db.query(`SELECT * FROM movie_info WHERE title='${request.query.movie_title}';`)
+        return response.render(
+            'view-movie',
+            {
+                movies: movies.rows,
             }
         )
     }

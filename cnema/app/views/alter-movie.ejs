@@ -53,6 +53,25 @@
 </form>
 <br/>
 
+<h2>Delete actor from movie</h2>
+<form action="/delete-movie-actor-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="actor" required>
+        <option value="">[Select actor]</option>
+        <% for(let person of actors_in_movie) { %>
+            <option value="<%= person %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %> as 
+                <%= person.portraying %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete actor"/>
+</form>
+<br/>
+
 <h2>Add director to movie</h2>
 <form action="/add-movie-director-action?movie_id=<%= movies[0].movie_id %>" method="post">
     <select name="director_id" required>
@@ -68,6 +87,24 @@
     </select>
     <br/>
     <input type="submit" value="Add director"/>
+</form>
+<br/>
+
+<h2>Delete director from movie</h2>
+<form action="/delete-movie-director-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="director_id" required>
+        <option value="">[Select director]</option>
+        <% for(let person of directors_in_movie) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete director"/>
 </form>
 <br/>
 
@@ -172,5 +209,35 @@
     </select>
     <br/>
     <input type="submit" value="Delete producer"/>
+</form>
+<br/>
+
+<h2>Add genre to movie</h2>
+<form action="/add-movie-genre-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="genre_id" required>
+        <option value="">[Select genre]</option>
+        <% for(let genre of genres) { %>
+            <option value="<%= genre.genre_id %>">
+                <%= genre.genre_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add genre"/>
+</form>
+<br/>
+
+<h2>Delete genre from movie</h2>
+<form action="/delete-movie-genre-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="genre_id" required>
+        <option value="">[Select genre]</option>
+        <% for(let genre of genres_in_movie) { %>
+            <option value="<%= genre.genre_id %>">
+                <%= genre.genre_name %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Delete genre"/>
 </form>
 <br/>

@@ -16,7 +16,7 @@
         <tr>
             <td><%= screening.screening_date.toLocaleDateString('pl-PL') %></td>
             <td><%= screening.screening_hour.slice(0, -3) %></td>
-            <td><%= screening.title %></td>
+            <td><a href="/view-movie?movie_title=<%= screening.title %>"><%= screening.title %></a></td>
             <td><%= screening.audio %></td>
             <td><%= screening.lector %></td>
             <td><%= screening.subtitles %></td>

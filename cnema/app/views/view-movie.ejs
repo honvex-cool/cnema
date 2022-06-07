@@ -1,0 +1,32 @@
+<h2>Movie details:</h2>
+<table>
+    <tr>
+        <th>title</th>
+        <th>genres</th>
+        <th>age rating</th>
+        <th>release date</th>
+        <th>language</th>
+        <th>directed by</th>
+        <th>screenplay by</th>
+        <th>starring</th>
+        <th>music by</th>
+        <th>produced by</th>
+        <th>reviewed as</th>
+    </tr>
+    <% for(let movie of movies) { %>
+        <tr>
+            <td><%= movie.title %></td>
+            <td><%= movie.genres %></td>
+            <td><%= movie.age_rating %></td>
+            <td><%= movie.release_date.toLocaleDateString() %></td>
+            <td><%= movie.original_language %></td>
+            <td><%= movie.directed_by %></td>
+            <td><%= movie.screenplay_by %></td>
+            <td><%= movie.starring %></td>
+            <td><%= movie.music_by %></td>
+            <td><%= movie.produced_by %></td>
+            <td><%= movie.reviewed_as %></td>
+        </tr>
+    <% } %>
+</table>
+<br/>
