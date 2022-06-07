@@ -58,7 +58,7 @@
     <select name="actor" required>
         <option value="">[Select actor]</option>
         <% for(let person of actors_in_movie) { %>
-            <option value="<%= person.person_id %> AND portraying='<%= person.portraying %>'">
+            <option value="<%= person.person_id %> '<%= person.portraying %>'">
                 <%= person.first_name %>
                 <%= person.last_name %>
                 <%= person.pseudonym %>

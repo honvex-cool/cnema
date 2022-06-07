@@ -80,19 +80,37 @@ app.post(
             VALUES
             (
                 DEFAULT,
-                '${form.screening_date}',
-                '${form.screening_time}',
-                ${form.screening_movie},
-                ${form.screening_audio},
-                ${form.screening_lector},
-                ${form.screening_subtitles},
-                ${form.screening_room},
-                ${form.screening_ticket_price}
+                $1,
+                $2,
+                $3,
+                $4,
+                $5,
+                $6,
+                $7,
+                $8
             );
             `
+        if(form.screening_audio == '')
+            form.screening_audio = null
+        if(form.screening_lector == '')
+            form.screening_lector = null
+        if(form.screening_subtitles == '')
+            form.screening_subtitles = null
         console.log(q)
+        const d = [
+                form.screening_date,
+                form.screening_time,
+                form.screening_movie,
+                form.screening_audio,
+                form.screening_lector,
+                form.screening_subtitles,
+                form.screening_room,
+                form.screening_ticket_price
+            ]
+        console.log(d)
         db.query(
             q,
+            d,
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -116,20 +134,6 @@ app.get(
     }
 )
 
-app.post(
-    '/add-room-result',
-    (request, response) => {
-        db.query(
-            `INSERT INTO rooms VALUES (DEFAULT, '${request.body.room_name}');`,
-            (error, _result) => {
-                if(error)
-                    console.log(error.message)
-                response.redirect('/add-room')
-            }
-        )
-    }
-)
-
 app.get(
     '/add-language',
     async (_request, response) => {
@@ -148,7 +152,8 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO languages VALUES (DEFAULT, '${form.language_name}');`,
+            `INSERT INTO languages VALUES (DEFAULT, $1);`,
+            [form.language_name],
             (error, _result) => {
                 if(error)
                     console.log("ERROR: " + error.message)
@@ -174,11 +179,12 @@ app.post(
             return response.redirect('/index')
         }
         const q = `
-            SELECT get_or_make_user_id('${form.username}', '${form.mail}') AS user_id;
+            SELECT get_or_make_user_id($1, $2) AS user_id;
             `
         console.log(q)
         db.query(
             q,
+            [form.username, form.mail],
             (error, result) => {
                 if(error) {
                     console.log('You stuped: ' + error.message)
@@ -214,19 +220,19 @@ app.get(
 app.get(
     '/alter-movie',
     async (request, response) => {
-        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id=${request.query.movie_id};`)
+        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id=$1;`, [request.query.movie_id])
         const languages = await db.query('SELECT * FROM languages;')
         const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
         const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
         const genres = await db.query('SELECT * FROM genres;')
-        const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=${request.query.movie_id} ORDER BY company_name ASC;`)
-        const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
-        const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
-        const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people ON director_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
-        const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people ON actor_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
-        const genres_in_movie = await db.query(`SELECT * FROM movies_genres JOIN genres USING(genre_id) WHERE movie_id=${request.query.movie_id} ORDER BY genre_name ASC;`)
+        const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=$1 ORDER BY company_name ASC;`, [request.query.movie_id])
+        const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
+        const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
+        const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people ON director_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
+        const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people ON actor_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
+        const genres_in_movie = await db.query(`SELECT * FROM movies_genres JOIN genres USING(genre_id) WHERE movie_id=$1 ORDER BY genre_name ASC;`, [request.query.movie_id])
         const reviews = await db.query('SELECT * FROM reviews;')
-        const reviews_for_movie = await db.query(`SELECT * FROM movies_reviews JOIN reviews ON reviews.review_id=movies_reviews.review_id WHERE movie_id=${request.query.movie_id} ORDER BY title ASC;`)
+        const reviews_for_movie = await db.query(`SELECT * FROM movies_reviews JOIN reviews ON reviews.review_id=movies_reviews.review_id WHERE movie_id=$1 ORDER BY title ASC;`, [request.query.movie_id])
         return response.render(
             'alter-movie',
             {
@@ -255,18 +261,20 @@ app.post(
         if(form.release_date == '')
             form.release_date = 'NULL'
         else
-            form.release_date = `'${form.release_date}'`
+            form.release_date = `${form.release_date}`
+        const tm = `${form.hours}:${form.minutes}`
         const q = `INSERT INTO movies VALUES (
-                    DEFAULT, 
-                    '${form.title}',
-                    '${form.hours}:${form.minutes}',
-                    ${form.age_rating},
-                    ${form.release_date},
-                    ${form.original_language}
+                    DEFAULT,
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5
                 );`
         console.log(q)
         db.query(
             q,
+            [form.title, tm, form.age_rating, form.release_date, form.original_language],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -281,11 +289,12 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_actors VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.actor_id},
-                    '${form.portraying}'
+            `INSERT INTO movies_actors VALUES (
+                    $1,
+                    $2,
+                    $3
                 );`,
+            [request.query.movie_id, form.actor_id, form.portraying],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -299,11 +308,16 @@ app.post(
     '/delete-movie-actor-action',
     (request, response) => {
         const form = request.body
+        let id: number = form.actor.split(' ')[0]
+        let prt: string = form.actor.split(' ')[1]
+        prt = prt.substring(1, prt.length - 1)
         db.query(
             `DELETE FROM movies_actors WHERE
-                    movie_id=${request.query.movie_id} AND
-                    actor_id=${form.actor}
+                    movie_id=$1 AND
+                    actor_id=$2 AND
+                    portraying = $3
                 ;`,
+            [request.query.movie_id, id, prt],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -318,10 +332,11 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_directors VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.director_id}
+            `INSERT INTO movies_directors VALUES (
+                    $1,
+                    $2
                 );`,
+            [request.query.movie_id, form.director_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -337,9 +352,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_directors WHERE
-                    movie_id=${request.query.movie_id} AND
-                    director_id=${form.director_id}
+                    movie_id=$1 AND
+                    director_id=$2
                 ;`,
+            [request.query.movie_id, form.director_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -354,10 +370,11 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_composers VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.composer_id}
+            `INSERT INTO movies_composers VALUES (
+                    $1,
+                    $2
                 );`,
+            [request.query.movie_id, form.composer_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -373,9 +390,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_composers WHERE
-                    movie_id=${request.query.movie_id} AND
-                    composer_id=${form.composer_id}
+                    movie_id=$1 AND
+                    composer_id=$2
                 ;`,
+            [request.query.movie_id, form.composer_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -390,10 +408,10 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_screenwriters VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.screenwriter_id}
+            `INSERT INTO movies_screenwriters VALUES (
+                    $1, $2
                 );`,
+            [request.query.movie_id, form.screenwriter_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -409,9 +427,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_screenwriters WHERE
-                    movie_id=${request.query.movie_id} AND
-                    screenwriter_id=${form.screenwriter_id}
+                    movie_id=$1 AND
+                    screenwriter_id=$2
                 ;`,
+            [request.query.movie_id, form.screenwriter_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -426,10 +445,8 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_producers VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.producer_id}
-                );`,
+            `INSERT INTO movies_producers VALUES ($1, $2);`,
+            [request.query.movie_id, form.producer_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -445,9 +462,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_producers WHERE
-                    movie_id=${request.query.movie_id} AND
-                    producer_id=${form.producer_id}
+                    movie_id=$1 AND
+                    producer_id=$2
                 ;`,
+            [request.query.movie_id, form.producer_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -462,10 +480,8 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_genres VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.genre_id}
-                );`,
+            `INSERT INTO movies_genres VALUES ($1, $2);`,
+            [request.query.movie_id, form.genre_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -481,9 +497,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_genres WHERE
-                    movie_id=${request.query.movie_id} AND
-                    genre_id=${form.genre_id}
+                    movie_id=$1 AND
+                    genre_id=$2
                 ;`,
+            [request.query.movie_id, form.genre_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -509,7 +526,7 @@ app.get(
 app.get(
     '/remove-genre',
     async (request, response) => {
-        await db.query(`DELETE FROM genres WHERE genre_id = ${request.query.genre_id};`)
+        await db.query(`DELETE FROM genres WHERE genre_id = $1;`, [request.query.genre_id])
         return response.redirect('/add-genres')
     }
 )
@@ -521,9 +538,10 @@ app.post(
         if(form.short_name == '')
             form.short_name = 'NULL'
         else
-            form.short_name = `'${form.short_name}'`
+            form.short_name = `${form.short_name}`
         db.query(
-            `INSERT INTO genres VALUES (DEFAULT, '${form.genre_name}', ${form.short_name});`,
+            `INSERT INTO genres VALUES (DEFAULT, $1, $2);`,
+            [form.genre_name, form.short_name],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -554,13 +572,14 @@ app.post(
         if(form.first_name == '')
             form.first_name = 'NULL'
         else
-            form.first_name = `'${form.first_name}'`
+            form.first_name = `${form.first_name}`
         if(form.pseudonym == '')
-            form.pseudonym = 'NULL'
+            form.pseudonym = null
         else
-            form.pseudonym = `'${form.pseudonym}'`
+            form.pseudonym = `${form.pseudonym}`
         db.query(
-            `INSERT INTO people VALUES (DEFAULT, ${form.first_name}, '${form.last_name}',${form.pseudonym});`,
+            `INSERT INTO people VALUES (DEFAULT, $1, $2, $3);`,
+            [form.first_name, form.last_name, form.pseudonym],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -573,7 +592,7 @@ app.post(
 app.get(
     '/remove-person',
     async (request, response) => {
-        await db.query(`DELETE FROM people WHERE person_id = ${request.query.person_id};`)
+        await db.query(`DELETE FROM people WHERE person_id = $1;`, [request.query.person_id])
         response.redirect('/add-people')
     }
 )
@@ -597,7 +616,7 @@ app.get(
 app.get(
     '/remove-producer',
     async (request, response) => {
-        await db.query(`DELETE FROM producers WHERE producer_id = ${request.query.producer_id};`)
+        await db.query(`DELETE FROM producers WHERE producer_id = $1;`, [request.query.producer_id])
         return response.redirect('/add-producers')
     }
 )
@@ -607,7 +626,7 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO producers VALUES (DEFAULT, '${form.company_name}');`,
+            `INSERT INTO producers VALUES (DEFAULT, $1);`, [form.company_name],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -620,7 +639,7 @@ app.post(
 app.get(
     '/user-history',
     async (_request, response) => {
-        const user_history = await db.query('SELECT * FROM user_history('+user_id+') ORDER BY date DESC,hour DESC, ticket_id DESC;')
+        const user_history = await db.query('SELECT * FROM user_history($1) ORDER BY date DESC,hour DESC, ticket_id DESC;', [user_id])
         return response.render(
             'user-history',
             {
@@ -634,7 +653,8 @@ app.get(
     '/cancel-ticket',
     (request, response) => {
         db.query(
-            `SELECT cancel_ticket(${request.query.ticket_id});`,
+            `SELECT cancel_ticket($1);`,
+            [request.query.ticket_id],
             (error, _result) => {
                 if(error)
                     console.log('Samo życie')
@@ -661,8 +681,8 @@ app.get(
 app.get(
     '/buy-for-screening',
     async (request, response) => {
-        const schedule = (await db.query(`SELECT * FROM schedule WHERE screening_id = '${request.query.screening_id}'`))
-        const free_seats = await db.query(`SELECT * FROM get_free_seats('${request.query.screening_id}');`)
+        const schedule = await db.query(`SELECT * FROM schedule WHERE screening_id = $1`, [request.query.screening_id])
+        const free_seats = await db.query(`SELECT * FROM get_free_seats($1);`, [request.query.screening_id])
         const ticket_types = await db.query('SELECT * FROM ticket_types;')
         return response.render(
             'buy-for-screening',
@@ -682,11 +702,12 @@ app.post(
         if(res_id){
             db.query(
                 `SELECT buy_ticket(
-                    ${request.query.screening_id},
-                    ${form.seat_id},
-                    ${form.ticket_type_id},
-                    ${res_id},
-                    ${user_id});`,
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5);`,
+                [request.query.screening_id, form.seat_id, form.ticket_type_id, res_id, user_id],
                 (error, _result) => {
                     if(error)
                         console.log('ERROR: ' + error.message)
@@ -697,11 +718,12 @@ app.post(
         else{
             db.query(
                 `SELECT buy_ticket(
-                    ${request.query.screening_id},
-                    ${form.seat_id},
-                    ${form.ticket_type_id},
+                    $1,
+                    $2,
+                    $3,
                     NULL,
-                    ${user_id}) AS "re";`,
+                    $4) AS "re";`,
+                [request.query.screening_id, form.seat_id, form.ticket_type_id, user_id],
                 (error, result) => {
                     if(error)
                         console.log('ERROR: ' + error.message)
@@ -731,7 +753,7 @@ app.get(
 app.get(
     '/remove-ticket-type',
     async (request, response) => {
-        await db.query(`DELETE FROM ticket_types WHERE ticket_type_id = ${request.query.type_id};`)
+        await db.query(`DELETE FROM ticket_types WHERE ticket_type_id = $1;`, [request.query.type_id])
         return response.redirect('/add-ticket-type')
     }
 )
@@ -747,10 +769,11 @@ app.post(
             VALUES
             (
                 DEFAULT,
-                '${form.type_name}',
-                ${discount}
+                $1,
+                $2
             );
             `,
+            [form.type_name, discount],
             (error, _result) => {
                 if(error)
                     console.log('ERROR ' + error.message)
@@ -763,7 +786,7 @@ app.post(
 app.get(
     '/view-movie',
     async (request, response) => {
-        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id IN (SELECT movie FROM full_screenings WHERE screening_id=${request.query.screening_id});`)
+        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id IN (SELECT movie FROM full_screenings WHERE screening_id=$1);`, [request.query.screening_id])
         return response.render(
             'view-movie',
             {
@@ -810,9 +833,9 @@ app.post(
         console.log("dupa")
         const s_beg = request.body.s_beg
         const s_end = request.body.s_end
-        const q = `SELECT coalesce(sum(s.x), 0) AS sm FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN '${s_beg}' AND '${s_end}') AS "s";`
+        const q = `SELECT coalesce(sum(s.x), 0) AS sm FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN $1 AND $2) AS "s";`
         console.log(q)
-        const money = await db.query(q)
+        const money = await db.query(q, [s_beg, s_end])
         const money_sum = money.rows[0].sm
         response.redirect(`/sum-money?money=${money_sum}&s_beg=${s_beg}&s_end=${s_end}`)
     }
@@ -858,7 +881,7 @@ app.post(
     '/add-review-action',
     (request, response) => {
         const form = request.body
-        form.summary = form.summary ? `'${form.summary}'` : 'NULL'
+        form.summary = form.summary ? `${form.summary}` : 'NULL'
         form.stars = form.stars === '' ? 'NULL' : form.stars
         const q =
             `
@@ -866,16 +889,17 @@ app.post(
             VALUES
             (
                 DEFAULT,
-                ${form.journal},
-                '${form.title}',
-                '${form.content}',
-                ${form.summary},
-                '${form.publication_date}',
-                ${form.stars}
+                $1,
+                $2,
+                $3,
+                $4,
+                $5,
+                $6
             );
             `
         db.query(
             q,
+            [form.journal, form.title, form.content, form.summary, form.publication_date, form.stars],
             (error, _result) => {
                 if(error)
                     console.log("ERROR: " + error.message)
@@ -888,11 +912,11 @@ app.post(
 app.get(
     '/alter-review',
     async (request, response) => {
-        const reviews = await db.query(`SELECT * FROM review_info WHERE review_id=${request.query.review_id};`)
+        const reviews = await db.query(`SELECT * FROM review_info WHERE review_id=$1;`, [request.query.review_id])
         const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
-        const authors = await db.query(`SELECT * FROM reviews_authors JOIN people ON author_id=person_id WHERE review_id=${request.query.review_id} ORDER BY last_name ASC;`)
+        const authors = await db.query(`SELECT * FROM reviews_authors JOIN people ON author_id=person_id WHERE review_id=$1 ORDER BY last_name ASC;`, [request.query.review_id])
         const movies = await db.query('SELECT * FROM movies;')
-        const reviewed = await db.query(`SELECT * FROM movies_reviews JOIN movies ON movies.movie_id=movies_reviews.movie_id WHERE review_id=${request.query.review_id} ORDER BY title ASC;`)
+        const reviewed = await db.query(`SELECT * FROM movies_reviews JOIN movies ON movies.movie_id=movies_reviews.movie_id WHERE review_id=$1 ORDER BY title ASC;`, [request.query.review_id])
         return response.render(
             'alter-review',
             {
@@ -911,10 +935,11 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO reviews_authors VALUES ( 
-                    ${request.query.review_id},
-                    ${form.author_id}
+            `INSERT INTO reviews_authors VALUES (
+                    $1,
+                    $2
                 );`,
+            [request.query.review_id, form.author_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -930,9 +955,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM reviews_authors WHERE
-                    review_id=${request.query.review_id} AND
-                    author_id=${form.author_id}
+                    review_id=$1 AND
+                    author_id=$2
                 ;`,
+            [request.query.review_id, form.author_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -947,10 +973,8 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_reviews VALUES (
-                    ${form.movie_id},
-                    ${request.query.review_id}
-                );`,
+            `INSERT INTO movies_reviews VALUES ($1, $2);`,
+            [form.movie_id, request.query.review_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -966,9 +990,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_reviews WHERE
-                    movie_id=${form.movie_id} AND
-                    review_id=${request.query.review_id}
+                    movie_id=$1 AND
+                    review_id=$2
                 ;`,
+            [form.movie_id, request.query.review_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -981,7 +1006,7 @@ app.post(
 app.get(
     '/remove-review',
     async (request, response) => {
-        await db.query(`DELETE FROM reviews WHERE review_id = ${request.query.review_id};`)
+        await db.query(`DELETE FROM reviews WHERE review_id = $1;`, [request.query.review_id])
         return response.redirect('/manage-reviews')
     }
 )
@@ -991,10 +1016,8 @@ app.post(
     (request, response) => {
         const form = request.body
         db.query(
-            `INSERT INTO movies_reviews VALUES ( 
-                    ${request.query.movie_id},
-                    ${form.review_id}
-                );`,
+            `INSERT INTO movies_reviews VALUES ($1, $2);`,
+            [request.query.movie_id, form.review_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
@@ -1010,9 +1033,10 @@ app.post(
         const form = request.body
         db.query(
             `DELETE FROM movies_reviews WHERE
-                    movie_id=${request.query.movie_id} AND
-                    review_id=${form.review_id}
+                    movie_id=$1 AND
+                    review_id=$2
                 ;`,
+            [request.query.movie_id, form.review_id],
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
