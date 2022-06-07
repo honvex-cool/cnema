@@ -1,0 +1,69 @@
+<h1>Reviews present in our database: <%= reviews.length %></h1>
+<h2>Add review</h2>
+<form action="/add-review-action" method="post">
+    <label for="title">Title:</label>
+    <input name="title" type="text" required/>
+    <br/>
+    <label for="publication_date">Publication date:</label>
+    <input name="publication_date" type="date" required/>
+    <br/>
+    <label for="journal">Journal:</label>
+    <select name="journal" required>
+        <option value="">[Select journal]</option>
+        <% for(let journal of journals) { %>
+            <option value="<%= journal.journal_id %>">
+                <%= journal.full_name %>
+                <% if(journal.short_name) { %>(<%= journal.short_name %>)<% } %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <label for="content">Content:</label>
+    <textarea name="content" required rows="5" cols="30"></textarea>
+    <br/>
+    <label for="summary">Summary:</label>
+    <input name="summary" type="text"/>
+    <br/>
+    <label for="stars">Stars:</label>
+    <input name="stars" type="number" min="0" max="10"/>
+    <br/>
+    <input type="submit" value="Add review"/>
+</form>
+<br/>
+
+<h2>Review list</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>title</th>
+        <th>published</th>
+        <th>concerning movies</th>
+        <th>summary</th>
+        <th>opinion</th>
+        <th>[actions]</th>
+    </tr>
+    <% for(let review of reviews) { %>
+        <tr>
+            <td><%= review.review_id %></td>
+            <td><a href="/alter-review?review_id=<%= review.review_id %>"><%= review.title %></a></td>
+            <td>
+                on
+                <%= review.publication_date.toLocaleDateString() %>
+                in
+                <%= review.journal %>
+            </td>
+            <td><%= review.of_movies %></td>
+            <td><%= review.summary %></td>
+            <td>
+                <% if(review.stars) { %>
+                    <%= review.stars %> / 10 stars
+                <% } %>
+            </td>
+            <td>
+            <% if(review.reference_count == 0) { %>
+                    <a class="removal" href="/remove-review?review_id=<%= review.review_id %>">[remove]</a>
+            <% } %>
+            </td>
+        </tr>
+    <% } %>
+</table>

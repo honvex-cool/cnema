@@ -1,0 +1,99 @@
+<h2>Alter review:</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>title</th>
+        <th>journal</th>
+        <th>publication date</th>
+        <th>authors</th>
+        <th>concerning movies</th>
+        <th>summary</th>
+        <th>opinion</th>
+    </tr>
+    <% for(let review of reviews) { %>
+        <tr>
+            <td><%= review.review_id %></td>
+            <td><%= review.title %></a></td>
+            <td><%= review.journal %></td>
+            <td><%= review.publication_date.toLocaleDateString() %></td>
+            <td><%= review.authors %></td>
+            <td><%= review.of_movies %></td>
+            <td><%= review.summary %></td>
+            <td>
+                <% if(review.stars) { %>
+                    <%= review.stars %> / 10 stars
+                <% } %>
+            </td>
+        </tr>
+    <% } %>
+    <p>
+        <%= reviews[0].contents %>
+    </p>
+</table>
+<br/>
+
+<h2>Link author to review</h2>
+<form action="/link-author-to-review-action?review_id=<%= reviews[0].review_id %>" method="post">
+    <select name="author_id" required>
+        <option value="">[Select author]</option>
+        <% for(let person of people) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Link author"/>
+</form>
+<br/>
+
+<h2>Unlink author from review</h2>
+<form action="/unlink-author-from-review-action?review_id=<%= reviews[0].review_id %>" method="post">
+    <select name="author_id" required>
+        <option value="">[Select author]</option>
+        <% for(let person of authors) { %>
+            <option value="<%= person.person_id %>">
+                <%= person.first_name %>
+                <%= person.last_name %>
+                <%= person.pseudonym %>
+                <%= person.person_id %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Unlink author"/>
+</form>
+<br/>
+
+<h2>Add as review of movie</h2>
+<form action="/add-review-of-movie-action?review_id=<%= reviews[0].review_id %>" method="post">
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of movies) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add"/>
+</form>
+<br/>
+
+<h2>Remove as review of movie</h2>
+<form action="/remove-review-of-movie-action?review_id=<%= reviews[0].review_id %>" method="post">
+    <select name="movie_id" required>
+        <option value="">[Select movie]</option>
+        <% for(let movie of reviewed) { %>
+            <option value="<%= movie.movie_id %>">
+                <%= movie.title %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Remove"/>
+</form>
+<br/>

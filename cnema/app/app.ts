@@ -223,6 +223,8 @@ app.get(
         const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people ON director_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
         const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people ON actor_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
         const genres_in_movie = await db.query(`SELECT * FROM movies_genres JOIN genres USING(genre_id) WHERE movie_id=${request.query.movie_id} ORDER BY genre_name ASC;`)
+        const reviews = await db.query('SELECT * FROM reviews;')
+        const reviews_for_movie = await db.query(`SELECT * FROM movies_reviews JOIN reviews ON reviews.review_id=movies_reviews.review_id WHERE movie_id=${request.query.movie_id} ORDER BY title ASC;`)
         return response.render(
             'alter-movie',
             {
@@ -237,6 +239,8 @@ app.get(
                 directors_in_movie: directors_in_movie.rows,
                 actors_in_movie: actors_in_movie.rows,
                 genres_in_movie: genres_in_movie.rows,
+                reviews: reviews.rows,
+                reviews_for_movie: reviews_for_movie.rows,
             }
         )
     }
@@ -809,5 +813,189 @@ app.listen(
     port,
     () => {
         console.log(`[server] Server is running at port ${port}!`)
+    }
+)
+
+
+app.get(
+    '/manage-reviews',
+    async (_request, response) => {
+        const reviews = await db.query('SELECT * FROM review_info ORDER BY review_id DESC;')
+        const journals = await db.query('SELECT * FROM journals;')
+        return response.render(
+            'manage-reviews',
+            {
+                reviews: reviews.rows,
+                journals: journals.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-review-action',
+    (request, response) => {
+        const form = request.body
+        form.summary = form.summary ? `'${form.summary}'` : 'NULL'
+        form.stars = form.stars === '' ? 'NULL' : form.stars
+        const q =
+            `
+            INSERT INTO reviews
+            VALUES
+            (
+                DEFAULT,
+                ${form.journal},
+                '${form.title}',
+                '${form.content}',
+                ${form.summary},
+                '${form.publication_date}',
+                ${form.stars}
+            );
+            `
+        db.query(
+            q,
+            (error, _result) => {
+                if(error)
+                    console.log("ERROR: " + error.message)
+                response.redirect('/manage-reviews')
+            }
+        )
+    }
+)
+
+app.get(
+    '/alter-review',
+    async (request, response) => {
+        const reviews = await db.query(`SELECT * FROM review_info WHERE review_id=${request.query.review_id};`)
+        const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
+        const authors = await db.query(`SELECT * FROM reviews_authors JOIN people ON author_id=person_id WHERE review_id=${request.query.review_id} ORDER BY last_name ASC;`)
+        const movies = await db.query('SELECT * FROM movies;')
+        const reviewed = await db.query(`SELECT * FROM movies_reviews JOIN movies ON movies.movie_id=movies_reviews.movie_id WHERE review_id=${request.query.review_id} ORDER BY title ASC;`)
+        return response.render(
+            'alter-review',
+            {
+                movies: movies.rows,
+                reviewed: reviewed.rows,
+                reviews: reviews.rows,
+                people: people.rows,
+                authors: authors.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/link-author-to-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO reviews_authors VALUES ( 
+                    ${request.query.review_id},
+                    ${form.author_id}
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-review?review_id=${request.query.review_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/unlink-author-from-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM reviews_authors WHERE
+                    review_id=${request.query.review_id} AND
+                    author_id=${form.author_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-review?review_id=${request.query.review_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/add-review-of-movie-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO movies_reviews VALUES (
+                    ${form.movie_id},
+                    ${request.query.review_id}
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-review?review_id=${request.query.review_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/remove-review-of-movie-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_reviews WHERE
+                    movie_id=${form.movie_id} AND
+                    review_id=${request.query.review_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-review?review_id=${request.query.review_id}`)
+            }
+        )
+    }
+)
+
+app.get(
+    '/remove-review',
+    async (request, response) => {
+        await db.query(`DELETE FROM reviews WHERE review_id = ${request.query.review_id};`)
+        return response.redirect('/manage-reviews')
+    }
+)
+
+app.post(
+    '/add-movie-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO movies_reviews VALUES ( 
+                    ${request.query.movie_id},
+                    ${form.review_id}
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_reviews WHERE
+                    movie_id=${request.query.movie_id} AND
+                    review_id=${form.review_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
     }
 )
