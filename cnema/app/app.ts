@@ -739,7 +739,7 @@ app.post(
 app.get(
     '/view-movie',
     async (request, response) => {
-        const movies = await db.query(`SELECT * FROM movie_info WHERE title='${request.query.movie_title}';`)
+        const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id IN (SELECT movie FROM full_screenings WHERE screening_id=${request.query.screening_id});`)
         return response.render(
             'view-movie',
             {
