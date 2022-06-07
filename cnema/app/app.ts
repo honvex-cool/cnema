@@ -219,6 +219,8 @@ app.get(
         const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=${request.query.movie_id} ORDER BY company_name ASC;`)
         const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
         const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=${request.query.movie_id} ORDER BY last_name ASC;`)
+        const reviews = await db.query('SELECT * FROM reviews;')
+        const reviews_for_movie = await db.query(`SELECT * FROM movies_reviews JOIN reviews ON reviews.review_id=movies_reviews.review_id WHERE movie_id=${request.query.movie_id} ORDER BY title ASC;`)
         return response.render(
             'alter-movie',
             {
@@ -229,6 +231,8 @@ app.get(
                 producers_in_movie: producers_in_movie.rows,
                 screenwriters_in_movie: screenwriters_in_movie.rows,
                 composers_in_movie: composers_in_movie.rows,
+                reviews: reviews.rows,
+                reviews_for_movie: reviews_for_movie.rows,
             }
         )
     }
@@ -800,6 +804,42 @@ app.get(
     async (request, response) => {
         await db.query(`DELETE FROM reviews WHERE review_id = ${request.query.review_id};`)
         return response.redirect('/manage-reviews')
+    }
+)
+
+app.post(
+    '/add-movie-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `INSERT INTO movies_reviews VALUES ( 
+                    ${request.query.movie_id},
+                    ${form.review_id}
+                );`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/delete-movie-review-action',
+    (request, response) => {
+        const form = request.body
+        db.query(
+            `DELETE FROM movies_reviews WHERE
+                    movie_id=${request.query.movie_id} AND
+                    review_id=${form.review_id}
+                ;`,
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
     }
 )
 

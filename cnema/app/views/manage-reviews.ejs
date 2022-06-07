@@ -59,11 +59,11 @@
                     <%= review.stars %> / 10 stars
                 <% } %>
             </td>
+            <td>
             <% if(review.reference_count == 0) { %>
-                <td>
                     <a class="removal" href="/remove-review?review_id=<%= review.review_id %>">[remove]</a>
-                </td>
             <% } %>
+            </td>
         </tr>
     <% } %>
 </table>

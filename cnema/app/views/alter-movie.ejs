@@ -174,3 +174,33 @@
     <input type="submit" value="Delete producer"/>
 </form>
 <br/>
+
+<h2>Add review for this movie</h2>
+<form action="/add-movie-review-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="review_id" required>
+        <option value="">[Select review]</option>
+        <% for(let review of reviews) { %>
+            <option value="<%= review.review_id %>">
+                <%= review.title %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Add review"/>
+</form>
+<br/>
+
+<h2>Unlink review from movie</h2>
+<form action="/delete-movie-review-action?movie_id=<%= movies[0].movie_id %>" method="post">
+    <select name="review_id" required>
+        <option value="">[Select review]</option>
+        <% for(let review of reviews_for_movie) { %>
+            <option value="<%= review.review_id %>">
+                <%= review.title %>
+            </option>
+        <% } %>
+    </select>
+    <br/>
+    <input type="submit" value="Unlink review"/>
+</form>
+<br/>
