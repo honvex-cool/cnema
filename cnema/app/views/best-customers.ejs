@@ -1,0 +1,18 @@
+<h2>Best customers:</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Bought tickets</th>
+    </tr>
+    <% for(let bc of best_customers) { %>
+        <tr>
+            <td><%= bc.customer_id %></td>
+            <td><%= bc.username %></td>
+            <td><%= bc.email %></td>
+            <td><%= bc.BoughtTickets %></td>
+        </tr>
+    <% } %>
+</table>
+<br/>

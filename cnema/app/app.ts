@@ -749,6 +749,19 @@ app.get(
     }
 )
 
+app.get(
+    '/best-customers',
+    async (_request, response) => {
+        const best_customers = await db.query('SELECT * FROM regular_customers;')
+        return response.render(
+            'best-customers',
+            {
+                best_customers: best_customers.rows,
+            }
+        )
+    }
+)
+
 app.listen(
     port,
     () => {
