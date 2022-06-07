@@ -762,6 +762,19 @@ app.get(
     }
 )
 
+app.get(
+    '/best-seats',
+    async (_request, response) => {
+        const best_seats = await db.query('SELECT * FROM most_popular_seats JOIN rooms ON room=room_id JOIN seats USING(seat_id);')
+        return response.render(
+            'best-seats',
+            {
+                best_seats: best_seats.rows,
+            }
+        )
+    }
+)
+
 app.listen(
     port,
     () => {

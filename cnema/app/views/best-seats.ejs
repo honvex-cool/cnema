@@ -1,0 +1,22 @@
+<h2>Most popular seats:</h2>
+<table>
+    <tr>
+        <th>Room ID</th>
+        <th>Room name</th>
+        <th>Seat ID</th>
+        <th>Row number</th>
+        <th>Seat number</th>
+        <th>Total number of reservations</th>
+    </tr>
+    <% for(let bs of best_seats) { %>
+        <tr>
+            <td><%= bs.room_id %></td>
+            <td><%= bs.room_name %></td>
+            <td><%= bs.seat_id %></td>
+            <td><%= bs.row_no %></td>
+            <td><%= bs.seat_no %></td>
+            <td><%= bs.NumberOfSeatReservations %></td>
+        </tr>
+    <% } %>
+</table>
+<br/>
