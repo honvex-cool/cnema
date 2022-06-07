@@ -790,8 +790,10 @@ app.post(
         console.log("dupa")
         const s_beg = request.body.s_beg
         const s_end = request.body.s_end
-        const money = await db.query(`SELECT sum(s.x) FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN '${s_beg}' AND '${s_end}') AS "s";`)
-        const money_sum = money.rows[0][0]
+        const q = `SELECT coalesce(sum(s.x), 0) AS sm FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN '${s_beg}' AND '${s_end}') AS "s";`
+        console.log(q)
+        const money = await db.query(q)
+        const money_sum = money.rows[0].sm
         response.redirect(`/sum-money?money=${money_sum}&s_beg=${s_beg}&s_end=${s_end}`)
     }
 )
