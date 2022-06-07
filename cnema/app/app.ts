@@ -293,17 +293,10 @@ app.post(
     '/delete-movie-actor-action',
     (request, response) => {
         const form = request.body
-        let q = `DELETE FROM movies_actors WHERE
-        movie_id=${request.query.movie_id} AND
-        actor_id=${form.actor.person_id} AND
-        portraying='${form.actor.portraying}'
-    ;`
-    console.log(q)
         db.query(
             `DELETE FROM movies_actors WHERE
                     movie_id=${request.query.movie_id} AND
-                    actor_id=${form.actor.person_id} AND
-                    portraying='${form.actor.portraying}'
+                    actor_id=${form.actor}
                 ;`,
             (error, _result) => {
                 if(error)
