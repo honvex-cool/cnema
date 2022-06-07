@@ -42,7 +42,7 @@
         <% for(let type of ticket_types) { %>
             <option value="<%= type.ticket_type_id %>">
                 <%= type.type_name %>
-                <%= type.discount %>%
+                <%= type.discount * 100 %>%
             </option>
         <% } %>
     </select>

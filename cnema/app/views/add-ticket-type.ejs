@@ -1,14 +1,14 @@
-<h1>Add genres</h1>
+<h1>Add ticket type</h1>
 <form action="/add-ticket-type-action" method="post">
-    <label for="type_name">New genre name:</label>
+    <label for="type_name">New ticket type name:</label>
     <input name="type_name" type="text" required/>
     <br/>
     <label for="discount">Discount (percentage):</label>
     <input name="discount" type="number" min="0" max="1" step="0.01" value="NULL"/>
     <br/>
-    <input type="submit" value="Add genre"/>
+    <input type="submit" value="Add ticket type"/>
 </form>
-<h2>Currently known genres:</h2>
+<h2>Currently known ticket types:</h2>
 <ul>
     <% for(let tp of types) { %>
         <li>
