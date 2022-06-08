@@ -1212,7 +1212,7 @@ app.get(
     '/person-details',
     async (request, response) => {
         const person = await db.query('SELECT * FROM people_info WHERE person_id = $1', [request.query.person_id])
-        return response.render('person-details', {person: person.rows[0]})
+        return response.render('person-details', {person: person.rows[0], error: request.query.error})
     }
 )
 
@@ -1223,9 +1223,22 @@ app.post(
             'UPDATE people SET first_name = $1 WHERE person_id = $2;',
             [request.body.new_first_name, request.query.person_id],
             (error, _result) => {
-                if(error)
-                    console.log('ERROR: ' + error.message)
-                response.redirect(`/person-details?person_id=${request.query.person_id}`)
+                if(error) {
+                    const message = error.message.includes('unq') ? 'Sorry, such person exists' : 'Pls don\'t break our database'
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/person-details',
+                                query: {
+                                    person_id: '' + request.query.person_id,
+                                    error: 'Sorry, such person exists'
+                                }
+                            }
+                        )
+                    )
+                }
+                else
+                    response.redirect(`/person-details?person_id=${request.query.person_id}`)
             }
         )
     }
@@ -1238,9 +1251,22 @@ app.post(
             'UPDATE people SET last_name = $1 WHERE person_id = $2;',
             [request.body.new_last_name, request.query.person_id],
             (error, _result) => {
-                if(error)
-                    console.log('ERROR: ' + error.message)
-                response.redirect(`/person-details?person_id=${request.query.person_id}`)
+                if(error) {
+                    const message = error.message.includes('unq') ? 'Sorry, such person exists' : 'Pls don\'t break our database'
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/person-details',
+                                query: {
+                                    person_id: '' + request.query.person_id,
+                                    error: message
+                                }
+                            }
+                        )
+                    )
+                }
+                else
+                    response.redirect(`/person-details?person_id=${request.query.person_id}`)
             }
         )
     }
@@ -1253,9 +1279,22 @@ app.post(
             'UPDATE people SET pseudonym = $1 WHERE person_id = $2;',
             [request.body.new_pseudonym, request.query.person_id],
             (error, _result) => {
-                if(error)
-                    console.log('ERROR: ' + error.message)
-                response.redirect(`/person-details?person_id=${request.query.person_id}`)
+                if(error) {
+                    const message = error.message.includes('unq') ? 'Sorry, such person exists' : 'Pls don\'t break our database'
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/person-details',
+                                query: {
+                                    person_id: '' + request.query.person_id,
+                                    error: message
+                                }
+                            }
+                        )
+                    )
+                }
+                else
+                    response.redirect(`/person-details?person_id=${request.query.person_id}`)
             }
         )
     }

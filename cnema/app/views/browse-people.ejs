@@ -33,15 +33,14 @@
     </tr>
     <% for(const person of people) { %>
         <tr>
-            <td>
-                <a href="/person-details?person_id=<%= person.person_id %>">
-                    <%= person.personal_info %>
-                </a>
-            </td>
+            <td><%= person.personal_info %></td>
             <td>
                 <%= person.activity_in_industry %>
             </td>
             <td>
+                <a href="/person-details?person_id=<%= person.person_id %>">
+                    [update]
+                </a>
                 <% if(person.activity_in_industry==0) { %>
                     <a class="removal" href="/remove-person?person_id=<%= person.person_id %>&search=<%= search %>">[remove]</a>
                 <% } %>
