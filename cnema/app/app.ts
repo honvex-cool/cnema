@@ -217,8 +217,9 @@ app.post(
 
 app.get(
     '/browse-movies-admin',
-    async (_request, response) => {
-        const movies = await db.query('SELECT * FROM movie_info ORDER BY movie_id DESC;')
+    async (request, response) => {
+        const search = request.query.search ? request.query.search : ''
+        const movies = await db.query(`SELECT * FROM movie_info WHERE title LIKE '%' || $1 || '%' ORDER BY movie_id DESC`, [search])
         const languages = await db.query('SELECT * FROM languages;')
         const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
         const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
@@ -229,7 +230,24 @@ app.get(
                 languages: languages.rows,
                 people: people.rows,
                 producers: producers.rows,
+                criteria_provided: typeof request.query.search != 'undefined'
             }
+        )
+    }
+)
+
+app.post(
+    '/search',
+    (request, response) => {
+        return response.redirect(
+            url.format(
+                {
+                    pathname: '/browse-movies-admin',
+                    query: {
+                        search: request.body.search,
+                    }
+                }
+            )
         )
     }
 )
