@@ -1306,7 +1306,8 @@ $$ LANGUAGE plpgsql;
 ---------------------
 --ALL BOUGHT TICKETS FROM USER
 CREATE OR REPLACE FUNCTION user_history(id INTEGER) RETURNS TABLE(
-        "ticket_id" int,
+        "screening_id" integer,
+        "ticket_id" integer,
         "title" varchar(100),
         "hour" time,
         "date" date,
@@ -1318,7 +1319,7 @@ CREATE OR REPLACE FUNCTION user_history(id INTEGER) RETURNS TABLE(
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		a.ticket_id, a.title AS "title", a.screening_hour AS "hour", a.screening_date AS "date", a.room_name AS "room", a.row_no AS "row", a.seat_no AS "seat",
+		a.screening AS "screening_id", a.ticket_id, a.title AS "title", a.screening_hour AS "hour", a.screening_date AS "date", a.room_name AS "room", a.row_no AS "row", a.seat_no AS "seat",
 		a.reservation_date AS "reservation_date", a.cancellation_date AS "cancelled"
 		FROM all_tickets a WHERE a.customer_id=id;
 END;

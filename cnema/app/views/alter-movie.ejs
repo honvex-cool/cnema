@@ -16,6 +16,16 @@
     </select>
     <input type="submit" value="Update language"/>
 </form>
+<form action="/update-movie-age-rating?movie_id=<%= movie.movie_id %>" method="post">
+    <label for="age_rating">Change age rating:</label>
+    <input name="age_rating" type="number" min="0" max="19" value="<%= movie.age_rating %>" required/>
+    <input type="submit" value="Update age rating"/>
+</form>
+<form action="/update-movie-release-date?movie_id=<%= movie.movie_id %>" method="post">
+    <label for="release_date">Change release date:</label>
+    <input name="release_date" type="date" value=""/>
+    <input type="submit" value="Update release date"/>
+</form>
 <table>
     <tr>
         <th>ID</th>
@@ -45,7 +55,9 @@
                 <%= movie.age_rating %>
             </td>
             <td>
-                <%= movie.release_date.toLocaleDateString() %>
+                <% if(movie.release_date != null) { %>
+                    <%= movie.release_date.toLocaleDateString() %>
+                <% } %>
             </td>
             <td>
                 <%= movie.original_language %>

@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
-import express from 'express'
+import express, { request } from 'express'
+import url from 'url'
 import pg from 'pg'
 import expressLayouts from 'express-ejs-layouts'
 
@@ -53,7 +54,7 @@ app.get(
 
 app.get(
     '/add-screening',
-    async (_request, response) => {
+    async (request, response) => {
         const schedule = await db.query('SELECT * FROM schedule ORDER BY screening_date, screening_hour;')
         const movies = await db.query('SELECT movie_id, title FROM movies;')
         const languages = await db.query('SELECT * FROM languages;')
@@ -65,6 +66,8 @@ app.get(
                 movies: movies.rows,
                 languages: languages.rows,
                 rooms: rooms.rows,
+                error: request.query.error,
+                success: request.query.success,
             }
         )
     }
@@ -113,22 +116,27 @@ app.post(
             d,
             (error, _result) => {
                 if(error)
-                    console.log('ERROR: ' + error.message)
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/add-screening',
+                                query: {
+                                    error: 'Sorry, you cannot do this: ' + error.message,
+                                }
+                            }
+                        )
+                    )
                 else
-                    console.log('No error')
-                response.redirect('/add-screening')
-            }
-        )
-    }
-)
-
-app.get(
-    '/add-room',
-    (_request, response) => {
-        db.query(
-            'SELECT room_name FROM rooms;',
-            (_error, result) => {
-                response.render('add-room', { rooms: result.rows })
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/add-screening',
+                                query: {
+                                    success: 'Successfully added a screening!'
+                                }
+                            }
+                        )
+                    )
             }
         )
     }
@@ -165,8 +173,8 @@ app.post(
 
 app.get(
     '/login',
-    (_request, response) => {
-        return response.render('login-screen')
+    (request, response) => {
+        return response.render('login-screen', {error: request.query.error})
     }
 )
 
@@ -188,7 +196,16 @@ app.post(
             (error, result) => {
                 if(error) {
                     console.log('You stuped: ' + error.message)
-                    response.redirect('/login')
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/login',
+                                query: {
+                                    error: 'Login failed: ' + error.message
+                                }
+                            }
+                        )
+                    )
                 } else {
                     user_id = result.rows[0].user_id
                     response.redirect('/index')
@@ -278,6 +295,38 @@ app.post(
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/update-movie-age-rating',
+    (request, response) => {
+        db.query(
+            'UPDATE movies SET age_rating = $1 WHERE movie_id = $2',
+            [request.body.age_rating, request.query.movie_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+
+app.post(
+    '/update-movie-release-date',
+    (request, response) => {
+        let dt = request.body.release_date == '' ? null : request.body.release_date
+        db.query(
+            'UPDATE movies SET international_release = $1 WHERE movie_id = $2',
+            [dt, request.query.movie_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR ' + error.message)
                 response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
@@ -714,12 +763,15 @@ app.get(
         const schedule = await db.query(`SELECT * FROM schedule WHERE screening_id = $1`, [request.query.screening_id])
         const free_seats = await db.query(`SELECT * FROM get_free_seats($1);`, [request.query.screening_id])
         const ticket_types = await db.query('SELECT * FROM ticket_types;')
+        const tickets_for_this = await db.query('SELECT * FROM user_history($1) WHERE screening_id = $2 AND cancelled IS NULL ORDER BY reservation_date DESC;', [user_id, request.query.screening_id])
         return response.render(
             'buy-for-screening',
             {
                 schedule: schedule.rows,
                 free_seats: free_seats.rows,
                 ticket_types: ticket_types.rows,
+                success: request.query.success,
+                tickets_for_this: tickets_for_this.rows,
             }
         )
     }
@@ -738,10 +790,20 @@ app.post(
                     $4,
                     $5);`,
                 [request.query.screening_id, form.seat_id, form.ticket_type_id, res_id, user_id],
-                (error, _result) => {
+                async (error, _result) => {
                     if(error)
-                        console.log('ERROR: ' + error.message)
-                    response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
+                        console.log('Przykra sprawa')
+                    const sd = (await db.query('SELECT row_no, seat_no FROM seats WHERE seat_id = $1', [form.seat_id])).rows[0]
+                    response.redirect(
+                        url.format({
+                                pathname: '/buy-for-screening',
+                                query: {
+                                    success: `Great! You can see your ticket (for seat no. ${sd.row_no} in row ${sd.seat_no}) in your ticket history`,
+                                    screening_id: `${request.query.screening_id}`,
+                                }
+                            }
+                        )
+                    )
                 }
             )
         }
@@ -754,12 +816,22 @@ app.post(
                     NULL,
                     $4) AS "re";`,
                 [request.query.screening_id, form.seat_id, form.ticket_type_id, user_id],
-                (error, result) => {
+                async (error, result) => {
                     if(error)
                         console.log('ERROR: ' + error.message)
                     else
                         res_id = result.rows[0].re
-                    response.redirect(`/buy-for-screening?screening_id=${request.query.screening_id}`)
+                    const sd = (await db.query('SELECT row_no, seat_no FROM seats WHERE seat_id = $1', [form.seat_id])).rows[0]
+                    response.redirect(
+                        url.format({
+                                pathname: '/buy-for-screening',
+                                query: {
+                                    success: `Great! You can see your ticket (for seat no. ${sd.row_no} in row ${sd.seat_no}) in your ticket history`,
+                                    screening_id: `${request.query.screening_id}`,
+                                }
+                            }
+                        )
+                    )
                 }
             )
 

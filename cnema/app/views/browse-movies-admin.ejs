@@ -52,7 +52,11 @@
             <td><a href="/alter-movie?movie_id=<%= movie.movie_id %>"><%= movie.title %></a></td>
             <td><%= movie.genres %></td>
             <td><%= movie.age_rating %></td>
-            <td><%= movie.release_date.toLocaleDateString() %></td>
+            <td>
+                <% if(movie.release_date != null) { %>
+                    <%= movie.release_date.toLocaleDateString() %>
+                <% } %>
+            </td>
             <td><%= movie.original_language %></td>
             <td><%= movie.directed_by %></td>
             <td><%= movie.screenplay_by %></td>

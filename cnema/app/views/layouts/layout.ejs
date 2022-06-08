@@ -14,6 +14,13 @@
                 <%- include('../partials/header') %>
                 <a href="/logout">Logout</a>
             </header>
+            <div>
+                <% if(typeof error != 'undefined' && error) { %>
+                    <b style="color: red;"><%= error %></b>
+                <% } else if(typeof success != 'undefined' && success) { %>
+                    <b style="color: green"><%= success %></b>
+                <% } %>
+            </div>
             <main>
                 <%- body %>
             </main>

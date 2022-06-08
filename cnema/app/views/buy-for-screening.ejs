@@ -50,4 +50,20 @@
     <input type="submit" value="Buy ticket"/>
 </form>
 <br/>
+<h2>Your tickets for this screening:</h2>
+<table>
+    <tr>
+        <th>Row number</th>
+        <th>Seat number</th>
+        <th>Reservation date</th>
+    </tr>
+    <% for(let us of tickets_for_this) { %>
+        <tr>
+            <td><%= us.row %></td>
+            <td><%= us.seat %></td>
+            <td><%= us.reservation_date.toLocaleDateString('pl-PL') %></td>
+        </tr>
+    <% } %>
+</table>
+
 
