@@ -222,21 +222,21 @@ app.get(
     async (request, response) => {
         const movies = await db.query(`SELECT * FROM movie_info WHERE movie_id=$1;`, [request.query.movie_id])
         const languages = await db.query('SELECT * FROM languages;')
-        const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
+        const people = await db.query('SELECT * FROM people_info;')
         const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
         const genres = await db.query('SELECT * FROM genres;')
         const producers_in_movie = await db.query(`SELECT * FROM movies_producers JOIN producers USING(producer_id) WHERE movie_id=$1 ORDER BY company_name ASC;`, [request.query.movie_id])
-        const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people ON screenwriter_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
-        const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people ON composer_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
-        const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people ON director_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
-        const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people ON actor_id=person_id WHERE movie_id=$1 ORDER BY last_name ASC;`, [request.query.movie_id])
+        const screenwriters_in_movie = await db.query(`SELECT * FROM movies_screenwriters JOIN people_info ON screenwriter_id=person_id WHERE movie_id=$1;`, [request.query.movie_id])
+        const composers_in_movie = await db.query(`SELECT * FROM movies_composers JOIN people_info ON composer_id=person_id WHERE movie_id=$1;`, [request.query.movie_id])
+        const directors_in_movie = await db.query(`SELECT * FROM movies_directors JOIN people_info ON director_id=person_id WHERE movie_id=$1;`, [request.query.movie_id])
+        const actors_in_movie = await db.query(`SELECT * FROM movies_actors JOIN people_info ON actor_id=person_id WHERE movie_id=$1;`, [request.query.movie_id])
         const genres_in_movie = await db.query(`SELECT * FROM movies_genres JOIN genres USING(genre_id) WHERE movie_id=$1 ORDER BY genre_name ASC;`, [request.query.movie_id])
         const reviews = await db.query('SELECT * FROM reviews;')
         const reviews_for_movie = await db.query(`SELECT * FROM movies_reviews JOIN reviews ON reviews.review_id=movies_reviews.review_id WHERE movie_id=$1 ORDER BY title ASC;`, [request.query.movie_id])
         return response.render(
             'alter-movie',
             {
-                movies: movies.rows,
+                movie: movies.rows[0],
                 languages: languages.rows,
                 people: people.rows,
                 producers: producers.rows,
@@ -249,6 +249,36 @@ app.get(
                 genres_in_movie: genres_in_movie.rows,
                 reviews: reviews.rows,
                 reviews_for_movie: reviews_for_movie.rows,
+            }
+        )
+    }
+)
+
+app.post(
+    '/update-movie-title',
+    (request, response) => {
+        db.query(
+            'UPDATE movies SET title = $2 WHERE movie_id = $1;',
+            [request.query.movie_id, request.body.new_title],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/update-movie-language',
+    (request, response) => {
+        db.query(
+            'UPDATE movies SET original_language = $1 WHERE movie_id = $2',
+            [request.body.language == '' ? null : request.body.language, request.query.movie_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
             }
         )
     }

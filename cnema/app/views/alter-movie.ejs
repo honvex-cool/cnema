@@ -1,4 +1,21 @@
 <h2>Alter movie:</h2>
+<form action="/update-movie-title?movie_id=<%= movie.movie_id %>" method="post">
+    <label for="new_title">Change title:</label>
+    <input name="new_title" type="text" value="<%= movie.title %>" required/>
+    <input type="submit" value="Update title"/>
+</form>
+<form action="/update-movie-language?movie_id=<%= movie.movie_id %>" method="post">
+    <label for="language">Change language: </label>
+    <select name="language">
+        <option value="">[none]</option>
+        <% for(let language of languages) { %>
+            <option value="<%= language.language_id %>">
+                <%= language.language_name %>
+            </option>
+        <% } %>
+    </select>
+    <input type="submit" value="Update language"/>
+</form>
 <table>
     <tr>
         <th>ID</th>
@@ -14,35 +31,55 @@
         <th>produced by</th>
         <th>reviewed as</th>
     </tr>
-    <% for(let movie of movies) { %>
         <tr>
-            <td><%= movie.movie_id %></td>
-            <td><%= movie.title %></td>
-            <td><%= movie.genres %></td>
-            <td><%= movie.age_rating %></td>
-            <td><%= movie.release_date.toLocaleDateString() %></td>
-            <td><%= movie.original_language %></td>
-            <td><%= movie.directed_by %></td>
-            <td><%= movie.screenplay_by %></td>
-            <td><%= movie.starring %></td>
-            <td><%= movie.music_by %></td>
-            <td><%= movie.produced_by %></td>
-            <td><%= movie.reviewed_as %></td>
+            <td>
+                <%= movie.movie_id %>
+            </td>
+            <td>
+                <%= movie.title %>
+            </td>
+            <td>
+                <%= movie.genres %>
+            </td>
+            <td>
+                <%= movie.age_rating %>
+            </td>
+            <td>
+                <%= movie.release_date.toLocaleDateString() %>
+            </td>
+            <td>
+                <%= movie.original_language %>
+            </td>
+            <td>
+                <%= movie.directed_by %>
+            </td>
+            <td>
+                <%= movie.screenplay_by %>
+            </td>
+            <td>
+                <%= movie.starring %>
+            </td>
+            <td>
+                <%= movie.music_by %>
+            </td>
+            <td>
+                <%= movie.produced_by %>
+            </td>
+            <td>
+                <%= movie.reviewed_as %>
+            </td>
         </tr>
-    <% } %>
 </table>
 <br/>
 
 <h2>Add actor to movie</h2>
-<form action="/add-movie-actor-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-actor-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="actor_id" required>
         <option value="">[Select actor]</option>
         <% for(let person of people) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_info %>
             </option>
         <% } %>
     </select>
@@ -54,15 +91,14 @@
 <br/>
 
 <h2>Delete actor from movie</h2>
-<form action="/delete-movie-actor-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-actor-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="actor" required>
         <option value="">[Select actor]</option>
         <% for(let person of actors_in_movie) { %>
             <option value="<%= person.person_id %> '<%= person.portraying %>'">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %> as 
+                (<%= person.person_id %>)
+                <%= person.personal_info %>
+                as
                 <%= person.portraying %>
             </option>
         <% } %>
@@ -73,15 +109,13 @@
 <br/>
 
 <h2>Add director to movie</h2>
-<form action="/add-movie-director-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-director-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="director_id" required>
         <option value="">[Select director]</option>
         <% for(let person of people) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -91,15 +125,13 @@
 <br/>
 
 <h2>Delete director from movie</h2>
-<form action="/delete-movie-director-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-director-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="director_id" required>
         <option value="">[Select director]</option>
         <% for(let person of directors_in_movie) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -109,15 +141,13 @@
 <br/>
 
 <h2>Add composer to movie</h2>
-<form action="/add-movie-composer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-composer-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="composer_id" required>
         <option value="">[Select composer]</option>
         <% for(let person of people) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -127,15 +157,13 @@
 <br/>
 
 <h2>Delete composer from movie</h2>
-<form action="/delete-movie-composer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-composer-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="composer_id" required>
         <option value="">[Select composer]</option>
         <% for(let person of composers_in_movie) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -145,15 +173,13 @@
 <br/>
 
 <h2>Add screenwriter to movie</h2>
-<form action="/add-movie-screenwriter-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-screenwriter-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="screenwriter_id" required>
         <option value="">[Select screenwriter]</option>
         <% for(let person of people) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -163,15 +189,13 @@
 <br/>
 
 <h2>Delete screenwriter from movie</h2>
-<form action="/delete-movie-screenwriter-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-screenwriter-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="screenwriter_id" required>
         <option value="">[Select screenwriter]</option>
         <% for(let person of screenwriters_in_movie) { %>
             <option value="<%= person.person_id %>">
-                <%= person.first_name %>
-                <%= person.last_name %>
-                <%= person.pseudonym %>
-                <%= person.person_id %>
+                (<%= person.person_id %>)
+                <%= person.personal_id %>
             </option>
         <% } %>
     </select>
@@ -181,13 +205,13 @@
 <br/>
 
 <h2>Add producer to movie</h2>
-<form action="/add-movie-producer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-producer-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="producer_id" required>
         <option value="">[Select producer]</option>
         <% for(let producer of producers) { %>
             <option value="<%= producer.producer_id %>">
+                (<%= producer.producer_id %>)
                 <%= producer.company_name %>
-                <%= producer.producer_id %>
             </option>
         <% } %>
     </select>
@@ -197,13 +221,13 @@
 <br/>
 
 <h2>Delete producer from movie</h2>
-<form action="/delete-movie-producer-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-producer-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="producer_id" required>
         <option value="">[Select producer]</option>
         <% for(let producer of producers_in_movie) { %>
             <option value="<%= producer.producer_id %>">
+                (<%= producer.producer_id %>)
                 <%= producer.company_name %>
-                <%= producer.producer_id %>
             </option>
         <% } %>
     </select>
@@ -213,7 +237,7 @@
 <br/>
 
 <h2>Add genre to movie</h2>
-<form action="/add-movie-genre-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-genre-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="genre_id" required>
         <option value="">[Select genre]</option>
         <% for(let genre of genres) { %>
@@ -228,7 +252,7 @@
 <br/>
 
 <h2>Delete genre from movie</h2>
-<form action="/delete-movie-genre-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-genre-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="genre_id" required>
         <option value="">[Select genre]</option>
         <% for(let genre of genres_in_movie) { %>
@@ -244,7 +268,7 @@
 
 
 <h2>Add review for this movie</h2>
-<form action="/add-movie-review-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/add-movie-review-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="review_id" required>
         <option value="">[Select review]</option>
         <% for(let review of reviews) { %>
@@ -259,7 +283,7 @@
 <br/>
 
 <h2>Unlink review from movie</h2>
-<form action="/delete-movie-review-action?movie_id=<%= movies[0].movie_id %>" method="post">
+<form action="/delete-movie-review-action?movie_id=<%= movie.movie_id %>" method="post">
     <select name="review_id" required>
         <option value="">[Select review]</option>
         <% for(let review of reviews_for_movie) { %>

@@ -826,6 +826,14 @@ SELECT
     (SELECT count(*) FROM movies_reviews WHERE movies_reviews.review_id = reviews.review_id) AS reference_count
 FROM reviews
 GROUP BY review_id;
+
+CREATE OR REPLACE VIEW people_info
+AS
+SELECT
+    person_id,
+    format_person(people) AS personal_info
+FROM people
+ORDER BY last_name, first_name, person_id;
 ------------------------
 
 -- Jasion
