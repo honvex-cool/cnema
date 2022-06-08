@@ -19,7 +19,7 @@ CREATE TABLE movies (
     CONSTRAINT pk_movies
         PRIMARY KEY(movie_id),
     CONSTRAINT age_rating_for_kids_only
-        CHECK(age_rating <= 19)
+        CHECK(age_rating BETWEEN 0 AND 19)
 );
 
 -- connect movies and languages --
@@ -844,18 +844,47 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION ticket_count_for_screening(screening_id integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN (
+        SELECT count(*)
+        FROM tickets
+        WHERE screening = screening_id
+    );
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION active_ticket_count_for_screening(screening_id integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN (
+        SELECT count(*)
+        FROM tickets
+        WHERE
+            screening = screening_id
+            AND
+            cancellation_date IS NULL
+    );
+END;
+$$
+LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION screenings_delete_check()
 RETURNS TRIGGER AS $screenings_delete_check$
 BEGIN
-	IF 
-		(SELECT COALESCE(COUNT(ticket_id),0)
-		FROM tickets 
-		WHERE screening=OLD.screening_id) > 0
+	IF
+        ticket_count_for_screening(OLD.screening_id) = 0
 	THEN
 		RETURN OLD;
 	END IF;
-	RETURN NULL;
+    RAISE EXCEPTION 'Cannot delete a screening referenced by tickets';
 END;
 $screenings_delete_check$
 LANGUAGE plpgsql;
@@ -1065,11 +1094,14 @@ SELECT
     fs.screening_date,
     fs.screening_hour,
 	m.title,
+    m.duration,
 	rln."audio",
 	rln."lector",
 	rln."subtitles",
 	r.room_name,
-    fs.base_ticket_price
+    fs.base_ticket_price,
+    ticket_count_for_screening(fs.screening_id) AS ticket_count,
+    active_ticket_count_for_screening(fs.screening_id) AS active_ticket_count
 FROM
 	full_screenings fs
 	JOIN rooms r ON fs.room=r.room_id
@@ -1085,7 +1117,7 @@ CREATE OR REPLACE RULE schedule_no_update AS ON UPDATE TO schedule DO INSTEAD NO
 
 CREATE OR REPLACE FUNCTION add_to_schedule(screening_date_ date,
                                             screening_hour_ time,
-                                            movie_id_ integer, 
+                                            movie_id_ integer,
                                             audio_language varchar,
                                             lector_language varchar,
                                             subtitles_language varchar,

@@ -79,19 +79,7 @@ app.post(
         const form = request.body
         const q =
             `
-            INSERT INTO schedule
-            VALUES
-            (
-                DEFAULT,
-                $1,
-                $2,
-                $3,
-                $4,
-                $5,
-                $6,
-                $7,
-                $8
-            );
+            SELECT add_to_schedule($1, $2, $3, $4, $5, $6, $7, $8);
             `
         if(form.screening_audio == '')
             form.screening_audio = null
@@ -139,6 +127,14 @@ app.post(
                     )
             }
         )
+    }
+)
+
+app.get(
+    '/delete-screening',
+    async (request, respones) => {
+        await db.query('DELETE FROM screenings WHERE screening_id = $1', [request.query.screening_id])
+        return respones.redirect('/add-screening')
     }
 )
 

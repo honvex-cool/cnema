@@ -5,22 +5,41 @@
         <th>Date</th>
         <th>Time</th>
         <th>Movie</th>
+        <th>Duration</th>
         <th>Audio</th>
         <th>Lector</th>
         <th>Subtitles</th>
         <th>Room name</th>
         <th>Ticket price (base)</th>
+        <th>Total ticket count</th>
+        <th>Active ticket count</th>
+        <th>[Actions]</th>
     </tr>
     <% for(let screening of schedule) { %>
         <tr>
             <td><%= screening.screening_date.toLocaleDateString('pl-PL') %></td>
             <td><%= screening.screening_hour.slice(0, -3) %></td>
             <td><%= screening.title %></td>
+            <td>
+                <% if(screening.duration.hours > 0) { %>
+                    <%= screening.duration.hours %> h
+                <% } %>
+                <% if(screening.duration.hours > 0) { %>
+                    <%= screening.duration.minutes %> min
+                <% } %>
+            </td>
             <td><%= screening.audio %></td>
             <td><%= screening.lector %></td>
             <td><%= screening.subtitles %></td>
             <td><%= screening.room_name %></td>
             <td><%= screening.base_ticket_price %> PLN</td>
+            <td><%= screening.ticket_count %></td>
+            <td><%= screening.active_ticket_count %></td>
+            <td>
+                <% if(screening.ticket_count == 0) { %>
+                    <a class="removal" href="/delete-screening?screening_id=<%= screening.screening_id %>">[delete]</a>
+                <% } %>
+            </td>
         </tr>
     <% } %>
 </table>
@@ -28,9 +47,9 @@
     <label for="screening_movie">Which movie? </label>
     <select name="screening_movie" required>
         <% for(let movie of movies) { %>
-            <option value="<%= movie.title %>">
+            <option value="<%= movie.movie_id %>">
+                (<%= movie.movie_id %>)
                 <%= movie.title %>
-                <%= movie.movie_id %>
             </option>
         <% } %>
     </select>
@@ -72,7 +91,7 @@
     <label for="screening_room">Screening room: </label>
     <select name="screening_room">
         <% for(let room of rooms) { %>
-            <option value="<%= room.room_name %>">
+            <option value="<%= room.room_id %>">
                 <%= room.room_name %>
             </option>
         <% } %>
