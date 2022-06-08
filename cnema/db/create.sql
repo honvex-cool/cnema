@@ -1081,7 +1081,7 @@ FROM
 	JOIN rooms r ON fs.room=r.room_id
 	JOIN movies m ON fs.movie=m.movie_id
 	JOIN regionalizations_language_names rln ON fs.regionalization = rln.regionalization_id
-WHERE fs.screening_date >= NOW()::date
+WHERE fs.screening_date >= NOW() :: timestamp
 ORDER BY fs.screening_date,fs.screening_hour,fs.screening_id;
 
 CREATE OR REPLACE RULE schedule_no_delete AS ON DELETE TO schedule DO INSTEAD NOTHING;
