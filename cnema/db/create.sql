@@ -234,7 +234,7 @@ CREATE TABLE abstract_screenings(
     abstract_screening_id serial NOT NULL,
     screening_hour time NOT NULL,
     room integer NOT NULL,
-    base_ticket_price numeric NOT NULL CHECK(base_ticket_price>=0),
+    base_ticket_price numeric(4,2) NOT NULL CHECK(base_ticket_price>=0),
     CONSTRAINT pk_abstract_screenings
         PRIMARY KEY(abstract_screening_id)
 );
@@ -336,9 +336,11 @@ CREATE TABLE customers (
 CREATE TABLE ticket_types (
     ticket_type_id serial NOT NULL,
     type_name character varying(40) UNIQUE NOT NULL,
-    discount numeric,
+    discount numeric(4,2),
     CONSTRAINT pk_ticket_types
-        PRIMARY KEY(ticket_type_id)
+        PRIMARY KEY(ticket_type_id),
+    CONSTRAINT sensible_discount
+        CHECK(discount BETWEEN 0 AND 1)
 );
 ------------
 
@@ -928,7 +930,7 @@ FOR EACH ROW EXECUTE PROCEDURE screenings_insert_check();
 
 -- Reservation value --
 CREATE OR REPLACE FUNCTION reservation_value(reservation_id integer)
-RETURNS numeric
+RETURNS numeric(4,2)
 AS
 $$
 BEGIN
@@ -1122,7 +1124,7 @@ CREATE OR REPLACE FUNCTION add_to_schedule(screening_date_ date,
                                             lector_language varchar,
                                             subtitles_language varchar,
                                             room_id_ integer,
-                                            base_ticket_price_ numeric)
+                                            base_ticket_price_ numeric(4,2))
 RETURNS integer AS
 $$
 DECLARE
