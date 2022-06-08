@@ -1,0 +1,51 @@
+<h1>
+    <% if(criteria_provided) { %>
+        People matching the search criteria:
+    <% } else { %>
+        People from the film industry present in our database:
+    <% } %>
+    <%= people.length %>
+</h1>
+<form action="/search-people" method="post">
+    <label for="search">Search:</label>
+    <input name="search" type="text"/>
+    <input type="submit" value="Search"/>
+</form>
+<h2>Add people:</h2>
+<form action="/add-person-action?search=<%= search %>" method="post">
+    <label for="first_name">First name (optional):</label>
+    <input name="first_name" type="text" />
+    <br/>
+    <label for="last_name">Last name:</label>
+    <input name="last_name" type="text" required/>
+    <br/>
+    <label for="pseudonym">Pseudonym (optional):</label>
+    <input name="pseudonym" type="text"/>
+    <br/>
+    <input type="submit" value="Add person"/>
+</form>
+<h2>Browse people</h2>
+<table>
+    <tr>
+        <th>Personal info</th>
+        <th>Activity in industry</th>
+        <th>[Actions]</th>
+    </tr>
+    <% for(const person of people) { %>
+        <tr>
+            <td>
+                <a href="/person-details?person_id=<%= person.person_id %>">
+                    <%= person.personal_info %>
+                </a>
+            </td>
+            <td>
+                <%= person.activity_in_industry %>
+            </td>
+            <td>
+                <% if(person.activity_in_industry==0) { %>
+                    <a class="removal" href="/remove-person?person_id=<%= person.person_id %>&search=<%= search %>">[remove]</a>
+                <% } %>
+            </td>
+        </tr>
+    <% } %>
+</table>

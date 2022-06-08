@@ -755,13 +755,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE VIEW people_with_activity
-AS
-SELECT
-    people.*,
-    activity_count(person_id) AS activity_in_industry
-FROM people;
-
 CREATE OR REPLACE VIEW ticket_types_with_statistics
 AS
 SELECT
@@ -830,8 +823,9 @@ GROUP BY review_id;
 CREATE OR REPLACE VIEW people_info
 AS
 SELECT
-    person_id,
-    format_person(people) AS personal_info
+    people.*,
+    format_person(people) AS personal_info,
+    activity_count(person_id) AS activity_in_industry
 FROM people
 ORDER BY last_name, first_name, person_id;
 ------------------------

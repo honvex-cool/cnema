@@ -219,7 +219,7 @@ app.get(
     '/browse-movies-admin',
     async (request, response) => {
         const search = request.query.search ? request.query.search : ''
-        const movies = await db.query(`SELECT * FROM movie_info WHERE title LIKE '%' || $1 || '%' ORDER BY movie_id DESC`, [search])
+        const movies = await db.query(`SELECT * FROM movie_info WHERE lower(title) LIKE lower('%' || $1 || '%') ORDER BY movie_id DESC`, [search])
         const languages = await db.query('SELECT * FROM languages;')
         const people = await db.query('SELECT * FROM people ORDER BY last_name ASC;')
         const producers = await db.query('SELECT * FROM producers ORDER BY company_name ASC;')
@@ -650,14 +650,36 @@ app.post(
 
 
 app.get(
-    '/add-people',
-    async (_request, response) => {
-        const people = await db.query('SELECT * FROM people_with_activity ORDER BY person_id DESC;')
+    '/browse-people',
+    async (request, response) => {
+        const search = request.query.search ? request.query.search : ''
+        const people = await db.query(
+            `SELECT * FROM people_info WHERE lower(personal_info) LIKE lower('%' || $1 || '%')`,
+            [search]
+        )
         return response.render(
-            'add-people',
+            'browse-people',
             {
                 people: people.rows,
+                criteria_provided: typeof request.query.search != 'undefined',
+                search: search
             }
+        )
+    }
+)
+
+app.post(
+    '/search-people',
+    (request, response) => {
+        return response.redirect(
+            url.format(
+                {
+                    pathname: '/browse-people',
+                    query: {
+                        search: request.body.search,
+                    }
+                }
+            )
         )
     }
 )
@@ -680,7 +702,19 @@ app.post(
             (error, _result) => {
                 if(error)
                     console.log('ERROR: ' + error.message)
-                response.redirect('/add-people')
+                if(typeof request.query.search == 'undefined')
+                    response.redirect('/browse-people')
+                else
+                    response.redirect(
+                        url.format(
+                            {
+                                pathname: '/browse-people',
+                                query: {
+                                    search: '' + request.query.search
+                                }
+                            }
+                        )
+                    )
             }
         )
     }
@@ -690,7 +724,19 @@ app.get(
     '/remove-person',
     async (request, response) => {
         await db.query(`DELETE FROM people WHERE person_id = $1;`, [request.query.person_id])
-        response.redirect('/add-people')
+        if(typeof request.query.search == 'undefined')
+            response.redirect('/browse-people')
+        else
+            response.redirect(
+                url.format(
+                    {
+                        pathname: '/browse-people',
+                        query: {
+                            search: '' + request.query.search
+                        },
+                    }
+                )
+            )
     }
 )
 
@@ -1161,6 +1207,59 @@ app.post(
                 if(error)
                     console.log('ERROR: ' + error.message)
                 response.redirect(`/alter-movie?movie_id=${request.query.movie_id}`)
+            }
+        )
+    }
+)
+
+app.get(
+    '/person-details',
+    async (request, response) => {
+        const person = await db.query('SELECT * FROM people_info WHERE person_id = $1', [request.query.person_id])
+        return response.render('person-details', {person: person.rows[0]})
+    }
+)
+
+app.post(
+    '/update-person-first-name',
+    (request, response) => {
+        db.query(
+            'UPDATE people SET first_name = $1 WHERE person_id = $2;',
+            [request.body.new_first_name, request.query.person_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/person-details?person_id=${request.query.person_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/update-person-last-name',
+    (request, response) => {
+        db.query(
+            'UPDATE people SET last_name = $1 WHERE person_id = $2;',
+            [request.body.new_last_name, request.query.person_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/person-details?person_id=${request.query.person_id}`)
+            }
+        )
+    }
+)
+
+app.post(
+    '/update-person-pseudonym',
+    (request, response) => {
+        db.query(
+            'UPDATE people SET pseudonym = $1 WHERE person_id = $2;',
+            [request.body.new_pseudonym, request.query.person_id],
+            (error, _result) => {
+                if(error)
+                    console.log('ERROR: ' + error.message)
+                response.redirect(`/person-details?person_id=${request.query.person_id}`)
             }
         )
     }

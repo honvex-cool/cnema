@@ -1,0 +1,16 @@
+<h2>Details for <%= person.personal_info %></h2>
+<form action="/update-person-first-name?person_id=<%= person.person_id %>" method="post">
+    <label for="new_first_name">Change first name:</label>
+    <input name="new_first_name" type="text" value="<%= person.first_name %>" required/>
+    <input type="submit" value="Update first name"/>
+</form>
+<form action="/update-person-last-name?person_id=<%= person.person_id %>" method="post">
+    <label for="new_last_name">Change last name:</label>
+    <input name="new_last_name" type="text" value="<%= person.last_name %>" required/>
+    <input type="submit" value="Update last name"/>
+</form>
+<form action="/update-person-pseudonym?person_id=<%= person.person_id %>" method="post">
+    <label for="new_pseudonym">Change pseudonym:</label>
+    <input name="new_pseudonym" type="text" value="<%= person.pseudonym %>" required/>
+    <input type="submit" value="Update pseudonym"/>
+</form>
