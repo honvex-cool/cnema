@@ -4,7 +4,14 @@
         <td>Money sum between <%= s_beg %> and <%= s_end %></td>
     </tr>
     <tr>
-        <td><%= Math.round(money * 100) / 100 %> PLN</td>
+        <td>
+            <% if(s_beg == '--' || s_end == '--') { %>
+                --.--
+            <% } else { %>
+                <%= Math.round(money * 100) / 100 %>
+            <% } %>
+            PLN
+        </td>
     </tr>
 </table>
 <br/>
