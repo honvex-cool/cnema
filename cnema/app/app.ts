@@ -40,12 +40,15 @@ app.get(
 
 app.get(
     '/index',
-    (_request, response) => {
+    async (_request, response) => {
         if(user_id) {
             if(user_id == -1)
                 response.render('admin-view')
             else
-                response.render('user-view')
+                response.render(
+                    'user-view',
+                    {user: (await db.query('SELECT * FROM customers WHERE customer_id = $1', [user_id])).rows[0]}
+                )
         }
         else
             response.redirect('/login')

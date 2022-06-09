@@ -818,9 +818,9 @@ SELECT
     summary,
     publication_date,
     stars,
-    (SELECT count(*) FROM movies_reviews WHERE movies_reviews.review_id = reviews.review_id) AS reference_count
-FROM reviews
-GROUP BY review_id;
+    (SELECT count(*) FROM movies_reviews WHERE movies_reviews.review_id = reviews.review_id) AS reference_count,
+    (SELECT count(*) FROM reviews_authors WHERE reviews_authors.review_id = reviews.review_id) AS author_count
+FROM reviews;
 
 CREATE OR REPLACE VIEW people_info
 AS
