@@ -542,7 +542,7 @@ AS
 $$
 BEGIN
     RETURN (
-        SELECT string_agg(genres.short_name, ', ')
+        SELECT string_agg(coalesce(genres.short_name, genres.genre_name), ', ')
         FROM
             movies_genres JOIN genres ON genres.genre_id = movies_genres.genre_id
         WHERE movies_genres.movie_id = movie

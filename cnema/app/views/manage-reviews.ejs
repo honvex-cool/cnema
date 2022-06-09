@@ -45,7 +45,7 @@
     <% for(let review of reviews) { %>
         <tr>
             <td><%= review.review_id %></td>
-            <td><a href="/alter-review?review_id=<%= review.review_id %>"><%= review.title %></a></td>
+            <td><%= review.title %></td>
             <td>
                 on
                 <%= review.publication_date.toLocaleDateString() %>
@@ -60,9 +60,10 @@
                 <% } %>
             </td>
             <td>
-            <% if(review.reference_count == 0 && review.author_count == 0) { %>
+                <% if(review.reference_count == 0 && review.author_count == 0) { %>
                     <a class="removal" href="/remove-review?review_id=<%= review.review_id %>">[remove]</a>
-            <% } %>
+                <% } %>
+                <a href="/alter-review?review_id=<%= review.review_id %>">[update]</a>
             </td>
         </tr>
     <% } %>

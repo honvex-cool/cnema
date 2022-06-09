@@ -995,7 +995,6 @@ app.get(
 app.post(
     '/sum-money-action',
     async (request, response) => {
-        console.log("dupa")
         const s_beg = request.body.s_beg
         const s_end = request.body.s_end
         const q = `SELECT coalesce(sum(s.x), 0) AS sm FROM (SELECT reservation_value(reservation_id) AS "x" FROM reservations WHERE reservation_date BETWEEN $1 AND $2) AS "s";`

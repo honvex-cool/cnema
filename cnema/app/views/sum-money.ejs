@@ -4,7 +4,7 @@
         <td>Money sum between <%= s_beg %> and <%= s_end %></td>
     </tr>
     <tr>
-        <td><%= money %></td>
+        <td><%= Math.round(money * 100) / 100 %> PLN</td>
     </tr>
 </table>
 <br/>
